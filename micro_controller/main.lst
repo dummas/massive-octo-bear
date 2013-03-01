@@ -1,0 +1,832 @@
+GAS LISTING /tmp/ccd8o0Ig.s 			page 1
+
+
+   1               		.file	"main.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.stabs	"/home/maksim/Work/Grasshopper/Micro_controller/sampling/",100,0,2,.Ltext0
+   8               		.stabs	"main.c",100,0,2,.Ltext0
+   9               		.text
+  10               	.Ltext0:
+  11               		.stabs	"gcc2_compiled.",60,0,0,0
+  12               		.stabs	"int:t(0,1)=r(0,1);-32768;32767;",128,0,0,0
+  13               		.stabs	"char:t(0,2)=@s8;r(0,2);0;255;",128,0,0,0
+  14               		.stabs	"long int:t(0,3)=@s32;r(0,3);020000000000;017777777777;",128,0,0,0
+  15               		.stabs	"unsigned int:t(0,4)=r(0,4);0;0177777;",128,0,0,0
+  16               		.stabs	"long unsigned int:t(0,5)=@s32;r(0,5);0;037777777777;",128,0,0,0
+  17               		.stabs	"long long int:t(0,6)=@s64;r(0,6);01000000000000000000000;0777777777777777777777;",128,0,0,
+  18               		.stabs	"long long unsigned int:t(0,7)=@s64;r(0,7);0;01777777777777777777777;",128,0,0,0
+  19               		.stabs	"short int:t(0,8)=r(0,8);-32768;32767;",128,0,0,0
+  20               		.stabs	"short unsigned int:t(0,9)=r(0,9);0;0177777;",128,0,0,0
+  21               		.stabs	"signed char:t(0,10)=@s8;r(0,10);-128;127;",128,0,0,0
+  22               		.stabs	"unsigned char:t(0,11)=@s8;r(0,11);0;255;",128,0,0,0
+  23               		.stabs	"float:t(0,12)=r(0,1);4;0;",128,0,0,0
+  24               		.stabs	"double:t(0,13)=r(0,1);4;0;",128,0,0,0
+  25               		.stabs	"long double:t(0,14)=r(0,1);4;0;",128,0,0,0
+  26               		.stabs	"void:t(0,15)=(0,15)",128,0,0,0
+  27               		.stabs	"/usr/lib/gcc/avr/4.7.2/../../../../avr/include/string.h",130,0,0,0
+  28               		.stabs	"/usr/lib/gcc/avr/4.7.2/include/stddef.h",130,0,0,0
+  29               		.stabs	"size_t:t(2,1)=(0,4)",128,0,213,0
+  30               		.stabn	162,0,0,0
+  31               		.stabn	162,0,0,0
+  32               		.stabs	"/usr/lib/gcc/avr/4.7.2/../../../../avr/include/avr/io.h",130,0,0,0
+  33               		.stabs	"/usr/lib/gcc/avr/4.7.2/../../../../avr/include/avr/sfr_defs.h",130,0,0,0
+  34               		.stabs	"/usr/lib/gcc/avr/4.7.2/../../../../avr/include/inttypes.h",130,0,0,0
+  35               		.stabs	"/usr/lib/gcc/avr/4.7.2/include/stdint.h",130,0,0,0
+  36               		.stabs	"/usr/lib/gcc/avr/4.7.2/../../../../avr/include/stdint.h",130,0,0,0
+  37               		.stabs	"int8_t:t(7,1)=(0,10)",128,0,121,0
+  38               		.stabs	"uint8_t:t(7,2)=(0,11)",128,0,122,0
+  39               		.stabs	"int16_t:t(7,3)=(0,1)",128,0,123,0
+  40               		.stabs	"uint16_t:t(7,4)=(0,4)",128,0,124,0
+  41               		.stabs	"int32_t:t(7,5)=(0,3)",128,0,125,0
+  42               		.stabs	"uint32_t:t(7,6)=(0,5)",128,0,126,0
+  43               		.stabs	"int64_t:t(7,7)=(0,6)",128,0,128,0
+  44               		.stabs	"uint64_t:t(7,8)=(0,7)",128,0,129,0
+  45               		.stabs	"intptr_t:t(7,9)=(7,3)",128,0,142,0
+  46               		.stabs	"uintptr_t:t(7,10)=(7,4)",128,0,147,0
+  47               		.stabs	"int_least8_t:t(7,11)=(7,1)",128,0,159,0
+  48               		.stabs	"uint_least8_t:t(7,12)=(7,2)",128,0,164,0
+  49               		.stabs	"int_least16_t:t(7,13)=(7,3)",128,0,169,0
+  50               		.stabs	"uint_least16_t:t(7,14)=(7,4)",128,0,174,0
+  51               		.stabs	"int_least32_t:t(7,15)=(7,5)",128,0,179,0
+  52               		.stabs	"uint_least32_t:t(7,16)=(7,6)",128,0,184,0
+  53               		.stabs	"int_least64_t:t(7,17)=(7,7)",128,0,192,0
+  54               		.stabs	"uint_least64_t:t(7,18)=(7,8)",128,0,199,0
+  55               		.stabs	"int_fast8_t:t(7,19)=(7,1)",128,0,213,0
+  56               		.stabs	"uint_fast8_t:t(7,20)=(7,2)",128,0,218,0
+  57               		.stabs	"int_fast16_t:t(7,21)=(7,3)",128,0,223,0
+GAS LISTING /tmp/ccd8o0Ig.s 			page 2
+
+
+  58               		.stabs	"uint_fast16_t:t(7,22)=(7,4)",128,0,228,0
+  59               		.stabs	"int_fast32_t:t(7,23)=(7,5)",128,0,233,0
+  60               		.stabs	"uint_fast32_t:t(7,24)=(7,6)",128,0,238,0
+  61               		.stabs	"int_fast64_t:t(7,25)=(7,7)",128,0,246,0
+  62               		.stabs	"uint_fast64_t:t(7,26)=(7,8)",128,0,253,0
+  63               		.stabs	"intmax_t:t(7,27)=(7,7)",128,0,273,0
+  64               		.stabs	"uintmax_t:t(7,28)=(7,8)",128,0,278,0
+  65               		.stabn	162,0,0,0
+  66               		.stabn	162,0,0,0
+  67               		.stabs	"int_farptr_t:t(5,1)=(7,5)",128,0,77,0
+  68               		.stabs	"uint_farptr_t:t(5,2)=(7,6)",128,0,81,0
+  69               		.stabn	162,0,0,0
+  70               		.stabn	162,0,0,0
+  71               		.stabs	"/usr/lib/gcc/avr/4.7.2/../../../../avr/include/avr/fuse.h",130,0,0,0
+  72               		.stabs	"__fuse_t:t(8,1)=(8,2)=s3low:(0,11),0,8;high:(0,11),8,8;extended:(0,11),16,8;;",128,0,244,0
+  73               		.stabn	162,0,0,0
+  74               		.stabn	162,0,0,0
+  75               		.stabs	"ADC_Init:F(0,15)",36,0,94,ADC_Init
+  76               	.global	ADC_Init
+  77               		.type	ADC_Init, @function
+  78               	ADC_Init:
+  79               		.stabd	46,0,0
+   1:main.c        **** #define FOSC 800000 // Clock speed
+   2:main.c        **** #define BAUD 9600
+   3:main.c        **** #define MUBRR FOSC/16/BAUD-1
+   4:main.c        **** 
+   5:main.c        **** /* Some macros */
+   6:main.c        **** 
+   7:main.c        **** /* ADC PD */
+   8:main.c        **** #define PD PC0
+   9:main.c        **** /* ADC RD */
+  10:main.c        **** #define RD PC1
+  11:main.c        **** /* ADC CS */
+  12:main.c        **** #define CS PC2
+  13:main.c        **** /* ADC CONVST */
+  14:main.c        **** #define CONVST PC3
+  15:main.c        **** 
+  16:main.c        **** #define output_low(port,pin) port &= ~(1<<pin)
+  17:main.c        **** #define output_high(port,pin) port |= (1<<pin)
+  18:main.c        **** #define set_input(portdir,pin) portdir &= ~(1<<pin)
+  19:main.c        **** #define set_output(portdir,pin) portdir |= (1<<pin)
+  20:main.c        **** 
+  21:main.c        **** #include <string.h>
+  22:main.c        **** #include <avr/io.h>
+  23:main.c        **** #include <avr/interrupt.h>
+  24:main.c        **** 
+  25:main.c        **** 
+  26:main.c        **** /* Main function */
+  27:main.c        **** int main ( void );
+  28:main.c        **** 
+  29:main.c        **** /* USART */
+  30:main.c        **** 
+  31:main.c        **** /* Usart initialization */
+  32:main.c        **** void USART_Init ( unsigned int );
+  33:main.c        **** /* Usart send */
+  34:main.c        **** void USART_Send ( unsigned char );
+  35:main.c        **** 
+GAS LISTING /tmp/ccd8o0Ig.s 			page 3
+
+
+  36:main.c        **** /* External ADC part */
+  37:main.c        **** 
+  38:main.c        **** /* The interrupt intitiative part */
+  39:main.c        **** void ADC_Init( void );
+  40:main.c        **** /* Make start of the conversion */
+  41:main.c        **** void ADC_start( void );
+  42:main.c        **** /* Read the information from the ADC */
+  43:main.c        **** void ADC_read( void );
+  44:main.c        **** /* Stop reading the information from ADC */
+  45:main.c        **** void ADC_stop( void );
+  46:main.c        **** 
+  47:main.c        **** /* DELAY */
+  48:main.c        **** void delay_ms( uint8_t );
+  49:main.c        **** 
+  50:main.c        **** 
+  51:main.c        **** /* Main function */
+  52:main.c        **** int main() {
+  53:main.c        **** 
+  54:main.c        ****   /* Initialize the USART for communication with Bluetooth module */
+  55:main.c        ****   // USART_Init( MUBRR );
+  56:main.c        **** 
+  57:main.c        ****   /* Initialize the interrupts */
+  58:main.c        ****   ADC_Init();
+  59:main.c        **** 
+  60:main.c        ****   ADC_start();
+  61:main.c        **** 
+  62:main.c        ****   /* Enable global interrupts */
+  63:main.c        ****   sei();
+  64:main.c        **** 
+  65:main.c        ****   /* Forever alone loop */
+  66:main.c        ****   for (;;) {
+  67:main.c        ****     /* Keep it usable -- using event-driven programing */
+  68:main.c        ****     // output_high( PORTC, CONVST );
+  69:main.c        ****     // delay_ms(100); 
+  70:main.c        ****     // output_low( PORTC, CONVST );
+  71:main.c        ****     // delay_ms(100);
+  72:main.c        ****     // delay_ms(100);
+  73:main.c        ****     // delay_ms(100);
+  74:main.c        ****     // delay_ms(100);
+  75:main.c        ****     // delay_ms(100);
+  76:main.c        ****     // delay_ms(100);
+  77:main.c        ****     // delay_ms(100);
+  78:main.c        ****     // output_high( PORTC, CONVST );
+  79:main.c        ****     // delay_ms(100); 
+  80:main.c        ****     // delay_ms(100); 
+  81:main.c        ****     // delay_ms(100); 
+  82:main.c        ****     // delay_ms(100); 
+  83:main.c        ****     // delay_ms(100); 
+  84:main.c        ****     // delay_ms(100); 
+  85:main.c        ****     // delay_ms(100); 
+  86:main.c        ****     // delay_ms(100); 
+  87:main.c        ****   }
+  88:main.c        **** 
+  89:main.c        **** 
+  90:main.c        ****   return 1;
+  91:main.c        **** }
+  92:main.c        **** 
+GAS LISTING /tmp/ccd8o0Ig.s 			page 4
+
+
+  93:main.c        **** /* ADC intialization with interrupt */
+  94:main.c        **** void ADC_Init() {
+  80               		.stabn	68,0,94,.LM0-.LFBB1
+  81               	.LM0:
+  82               	.LFBB1:
+  83               	/* prologue: function */
+  84               	/* frame size = 0 */
+  85               	/* stack size = 0 */
+  86               	.L__stack_usage = 0
+  95:main.c        ****   /* Enable interrupt on Port D, pin 2 (int0) */
+  96:main.c        ****   // PCMSK0 |= (1<<PIND2);
+  97:main.c        **** 
+  98:main.c        ****   /* Interrupt on failing edge */
+  99:main.c        ****   // MCUCR = (1 << ISC01 ) | (1 << ISC00);
+ 100:main.c        **** 
+ 101:main.c        ****   /* Turn on interrupts */
+ 102:main.c        ****   //GIMSK |= (1 << INT0 );
+ 103:main.c        ****   set_output( DDRC, PD );
+  87               		.stabn	68,0,103,.LM1-.LFBB1
+  88               	.LM1:
+  89 0000 A09A      		sbi 0x14,0
+ 104:main.c        **** 
+ 105:main.c        ****   /* SET RD as output */
+ 106:main.c        ****   //DDRC |= (1 << 2);
+ 107:main.c        ****   set_output( DDRC, RD );
+  90               		.stabn	68,0,107,.LM2-.LFBB1
+  91               	.LM2:
+  92 0002 A19A      		sbi 0x14,1
+ 108:main.c        **** 
+ 109:main.c        ****   /* Set CR as output */
+ 110:main.c        ****   set_output( DDRC, CS );
+  93               		.stabn	68,0,110,.LM3-.LFBB1
+  94               	.LM3:
+  95 0004 A29A      		sbi 0x14,2
+ 111:main.c        **** 
+ 112:main.c        ****   /* Set CONVST as output */
+ 113:main.c        ****   set_output( DDRC, CONVST );
+  96               		.stabn	68,0,113,.LM4-.LFBB1
+  97               	.LM4:
+  98 0006 A39A      		sbi 0x14,3
+ 114:main.c        **** 
+ 115:main.c        ****   /* Set PORTA as input */
+ 116:main.c        ****   DDRA = 0x00;
+  99               		.stabn	68,0,116,.LM5-.LFBB1
+ 100               	.LM5:
+ 101 0008 1ABA      		out 0x1a,__zero_reg__
+ 102 000a 0895      		ret
+ 103               		.size	ADC_Init, .-ADC_Init
+ 104               	.Lscope1:
+ 105               		.stabs	"",36,0,0,.Lscope1-.LFBB1
+ 106               		.stabd	78,0,0
+ 107               		.stabs	"ADC_read:F(0,15)",36,0,121,ADC_read
+ 108               	.global	ADC_read
+ 109               		.type	ADC_read, @function
+ 110               	ADC_read:
+ 111               		.stabd	46,0,0
+ 117:main.c        **** 
+GAS LISTING /tmp/ccd8o0Ig.s 			page 5
+
+
+ 118:main.c        **** }
+ 119:main.c        **** 
+ 120:main.c        **** /* Make the ADC readout */ 
+ 121:main.c        **** void ADC_read() {
+ 112               		.stabn	68,0,121,.LM6-.LFBB2
+ 113               	.LM6:
+ 114               	.LFBB2:
+ 115               	/* prologue: function */
+ 116               	/* frame size = 0 */
+ 117               	/* stack size = 0 */
+ 118               	.L__stack_usage = 0
+ 119 000c 0895      		ret
+ 120               		.size	ADC_read, .-ADC_read
+ 121               	.Lscope2:
+ 122               		.stabs	"",36,0,0,.Lscope2-.LFBB2
+ 123               		.stabd	78,0,0
+ 124               		.stabs	"ADC_stop:F(0,15)",36,0,163,ADC_stop
+ 125               	.global	ADC_stop
+ 126               		.type	ADC_stop, @function
+ 127               	ADC_stop:
+ 128               		.stabd	46,0,0
+ 122:main.c        **** 
+ 123:main.c        ****   // unsigned char adc_value;
+ 124:main.c        **** 
+ 125:main.c        ****   // output_low( PORTC, RD );
+ 126:main.c        ****   // output_low( PORTC, CS );
+ 127:main.c        **** 
+ 128:main.c        ****   // /* Read the PORTA */
+ 129:main.c        ****   // adc_value = PORTA;
+ 130:main.c        **** 
+ 131:main.c        ****   // /* Make RD low */
+ 132:main.c        ****   // output_high( DDRC, RD );
+ 133:main.c        ****   // output_high( DDRC, CS );
+ 134:main.c        **** 
+ 135:main.c        ****   // /* Stop ADC */
+ 136:main.c        ****   // ADC_stop();
+ 137:main.c        **** 
+ 138:main.c        ****   // delay_ms(100);
+ 139:main.c        **** 
+ 140:main.c        ****   // /* Start conversion again */
+ 141:main.c        ****   // ADC_start();
+ 142:main.c        ****   
+ 143:main.c        **** }
+ 144:main.c        **** 
+ 145:main.c        **** /* Make the ADC readout start */
+ 146:main.c        **** void ADC_start() {
+ 147:main.c        **** 
+ 148:main.c        ****   /* MODE 2 Operation */
+ 149:main.c        ****   output_low( PORTC, CONVST );
+ 150:main.c        **** 
+ 151:main.c        ****   /* Start of conversion */
+ 152:main.c        ****   /* Set ADC to power up */
+ 153:main.c        ****   output_high( PORTC, PD );
+ 154:main.c        ****   output_high( PORTC, CS );
+ 155:main.c        ****   output_high( PORTC, RD );
+ 156:main.c        ****   /* Start conversation */
+ 157:main.c        **** 
+GAS LISTING /tmp/ccd8o0Ig.s 			page 6
+
+
+ 158:main.c        ****   output_high( PORTC, CONVST );
+ 159:main.c        ****   delay_ms(10); /* t_power-up */
+ 160:main.c        ****   output_low( PORTC, CONVST );
+ 161:main.c        **** }
+ 162:main.c        **** 
+ 163:main.c        **** void ADC_stop() {
+ 129               		.stabn	68,0,163,.LM7-.LFBB3
+ 130               	.LM7:
+ 131               	.LFBB3:
+ 132               	/* prologue: function */
+ 133               	/* frame size = 0 */
+ 134               	/* stack size = 0 */
+ 135               	.L__stack_usage = 0
+ 136 000e 0895      		ret
+ 137               		.size	ADC_stop, .-ADC_stop
+ 138               	.Lscope3:
+ 139               		.stabs	"",36,0,0,.Lscope3-.LFBB3
+ 140               		.stabd	78,0,0
+ 141               		.stabs	"USART_Init:F(0,15)",36,0,171,USART_Init
+ 142               	.global	USART_Init
+ 143               		.type	USART_Init, @function
+ 144               	USART_Init:
+ 145               		.stabd	46,0,0
+ 164:main.c        **** 
+ 165:main.c        ****   // output_low( PORTC, CS );
+ 166:main.c        **** 
+ 167:main.c        **** }
+ 168:main.c        **** 
+ 169:main.c        **** 
+ 170:main.c        **** /* USART initialization */
+ 171:main.c        **** void USART_Init( unsigned int ubrr ) {
+ 146               		.stabn	68,0,171,.LM8-.LFBB4
+ 147               	.LM8:
+ 148               	.LFBB4:
+ 149               	/* prologue: function */
+ 150               	/* frame size = 0 */
+ 151               	/* stack size = 0 */
+ 152               	.L__stack_usage = 0
+ 172:main.c        ****   /* Set baud rate */
+ 173:main.c        ****   UBRR0H = (unsigned char) (ubrr>>8);
+ 153               		.stabn	68,0,173,.LM9-.LFBB4
+ 154               	.LM9:
+ 155 0010 90BD      		out 0x20,r25
+ 174:main.c        ****   UBRR0L = (unsigned char) ubrr;
+ 156               		.stabn	68,0,174,.LM10-.LFBB4
+ 157               	.LM10:
+ 158 0012 89B9      		out 0x9,r24
+ 175:main.c        ****   /* Enable received and transmitter */
+ 176:main.c        ****   UCSR0B = (1<<RXEN0)|(1<<TXEN0);
+ 159               		.stabn	68,0,176,.LM11-.LFBB4
+ 160               	.LM11:
+ 161 0014 88E1      		ldi r24,lo8(24)
+ 162 0016 8AB9      		out 0xa,r24
+ 177:main.c        ****   /* Enable receive interrupt */
+ 178:main.c        ****   UCSR0B |= ( 1 << RXCIE0 );
+ 163               		.stabn	68,0,178,.LM12-.LFBB4
+ 164               	.LM12:
+GAS LISTING /tmp/ccd8o0Ig.s 			page 7
+
+
+ 165 0018 579A      		sbi 0xa,7
+ 179:main.c        ****   /* Use 8bit chacter sizes */
+ 180:main.c        ****   UCSR0C = ( 1 << URSEL0 ) | ( 1 << UCSZ00 ) | ( 1 << UCSZ01 );
+ 166               		.stabn	68,0,180,.LM13-.LFBB4
+ 167               	.LM13:
+ 168 001a 86E8      		ldi r24,lo8(-122)
+ 169 001c 80BD      		out 0x20,r24
+ 170 001e 0895      		ret
+ 171               		.size	USART_Init, .-USART_Init
+ 172               	.Lscope4:
+ 173               		.stabs	"",36,0,0,.Lscope4-.LFBB4
+ 174               		.stabd	78,0,0
+ 175               		.stabs	"USART_Send:F(0,15)",36,0,184,USART_Send
+ 176               		.stabs	"send_byte:P(0,11)",64,0,184,24
+ 177               	.global	USART_Send
+ 178               		.type	USART_Send, @function
+ 179               	USART_Send:
+ 180               		.stabd	46,0,0
+ 181:main.c        **** }
+ 182:main.c        **** 
+ 183:main.c        **** /* USART send byte */ 
+ 184:main.c        **** void USART_Send( unsigned char send_byte ) {
+ 181               		.stabn	68,0,184,.LM14-.LFBB5
+ 182               	.LM14:
+ 183               	.LFBB5:
+ 184               	/* prologue: function */
+ 185               	/* frame size = 0 */
+ 186               	/* stack size = 0 */
+ 187               	.L__stack_usage = 0
+ 188               	.L6:
+ 185:main.c        **** 
+ 186:main.c        ****   /* Wait until USART is ready */
+ 187:main.c        ****   while (( UCSR0A & (1 << UDRE0 ) ) == 0) {};
+ 189               		.stabn	68,0,187,.LM15-.LFBB5
+ 190               	.LM15:
+ 191 0020 5D9B      		sbis 0xb,5
+ 192 0022 00C0      		rjmp .L6
+ 188:main.c        **** 
+ 189:main.c        ****   /* Send the byte */
+ 190:main.c        ****   UDR0 = send_byte;
+ 193               		.stabn	68,0,190,.LM16-.LFBB5
+ 194               	.LM16:
+ 195 0024 8CB9      		out 0xc,r24
+ 196 0026 0895      		ret
+ 197               		.size	USART_Send, .-USART_Send
+ 198               	.Lscope5:
+ 199               		.stabs	"",36,0,0,.Lscope5-.LFBB5
+ 200               		.stabd	78,0,0
+ 201               		.stabs	"__vector_19:F(0,15)",36,0,197,__vector_19
+ 202               	.global	__vector_19
+ 203               		.type	__vector_19, @function
+ 204               	__vector_19:
+ 205               		.stabd	46,0,0
+ 191:main.c        **** 
+ 192:main.c        **** }
+ 193:main.c        **** 
+ 194:main.c        **** /* Events */
+GAS LISTING /tmp/ccd8o0Ig.s 			page 8
+
+
+ 195:main.c        **** 
+ 196:main.c        **** /* USART receive event */
+ 197:main.c        **** ISR ( USART0_RXC_vect ) {
+ 206               		.stabn	68,0,197,.LM17-.LFBB6
+ 207               	.LM17:
+ 208               	.LFBB6:
+ 209 0028 1F92      		push r1
+ 210 002a 0F92      		push r0
+ 211 002c 0FB6      		in r0,__SREG__
+ 212 002e 0F92      		push r0
+ 213 0030 1124      		clr __zero_reg__
+ 214 0032 2F93      		push r18
+ 215 0034 3F93      		push r19
+ 216 0036 4F93      		push r20
+ 217 0038 5F93      		push r21
+ 218 003a 6F93      		push r22
+ 219 003c 7F93      		push r23
+ 220 003e 8F93      		push r24
+ 221 0040 9F93      		push r25
+ 222 0042 AF93      		push r26
+ 223 0044 BF93      		push r27
+ 224 0046 EF93      		push r30
+ 225 0048 FF93      		push r31
+ 226               	/* prologue: Signal */
+ 227               	/* frame size = 0 */
+ 228               	/* stack size = 15 */
+ 229               	.L__stack_usage = 15
+ 198:main.c        **** 
+ 199:main.c        ****   unsigned char received_byte;
+ 200:main.c        **** 
+ 201:main.c        ****   // Fetch the received byte value into the variable
+ 202:main.c        ****   received_byte = UDR0;
+ 230               		.stabn	68,0,202,.LM18-.LFBB6
+ 231               	.LM18:
+ 232 004a 8CB1      		in r24,0xc
+ 203:main.c        **** 
+ 204:main.c        ****   // Echo back
+ 205:main.c        ****   USART_Send( received_byte );
+ 233               		.stabn	68,0,205,.LM19-.LFBB6
+ 234               	.LM19:
+ 235 004c 0E94 0000 		call USART_Send
+ 236               	/* epilogue start */
+ 206:main.c        **** 
+ 207:main.c        **** }
+ 237               		.stabn	68,0,207,.LM20-.LFBB6
+ 238               	.LM20:
+ 239 0050 FF91      		pop r31
+ 240 0052 EF91      		pop r30
+ 241 0054 BF91      		pop r27
+ 242 0056 AF91      		pop r26
+ 243 0058 9F91      		pop r25
+ 244 005a 8F91      		pop r24
+ 245 005c 7F91      		pop r23
+ 246 005e 6F91      		pop r22
+ 247 0060 5F91      		pop r21
+ 248 0062 4F91      		pop r20
+ 249 0064 3F91      		pop r19
+GAS LISTING /tmp/ccd8o0Ig.s 			page 9
+
+
+ 250 0066 2F91      		pop r18
+ 251 0068 0F90      		pop r0
+ 252 006a 0FBE      		out __SREG__,r0
+ 253 006c 0F90      		pop r0
+ 254 006e 1F90      		pop r1
+ 255 0070 1895      		reti
+ 256               		.size	__vector_19, .-__vector_19
+ 257               		.stabs	"received_byte:r(0,11)",64,0,199,24
+ 258               		.stabn	192,0,0,.LFBB6-.LFBB6
+ 259               		.stabn	224,0,0,.Lscope6-.LFBB6
+ 260               	.Lscope6:
+ 261               		.stabs	"",36,0,0,.Lscope6-.LFBB6
+ 262               		.stabd	78,0,0
+ 263               		.stabs	"delay_ms:F(0,15)",36,0,232,delay_ms
+ 264               		.stabs	"ms:P(7,2)",64,0,232,24
+ 265               	.global	delay_ms
+ 266               		.type	delay_ms, @function
+ 267               	delay_ms:
+ 268               		.stabd	46,0,0
+ 208:main.c        **** 
+ 209:main.c        **** /* Interrupts on ADC finish */
+ 210:main.c        **** ISR ( INT0_vect ) {
+ 211:main.c        **** 
+ 212:main.c        ****   unsigned char received_byte;
+ 213:main.c        **** 
+ 214:main.c        ****   received_byte = 0xFF;
+ 215:main.c        **** 
+ 216:main.c        ****   delay_ms(100);
+ 217:main.c        ****   delay_ms(100);
+ 218:main.c        ****   delay_ms(100);
+ 219:main.c        ****   delay_ms(100);
+ 220:main.c        ****   delay_ms(100);
+ 221:main.c        ****   delay_ms(100);
+ 222:main.c        ****   delay_ms(100);
+ 223:main.c        ****   delay_ms(100);
+ 224:main.c        ****   delay_ms(100);
+ 225:main.c        ****   delay_ms(100);
+ 226:main.c        **** 
+ 227:main.c        ****   USART_Send(received_byte);
+ 228:main.c        ****   
+ 229:main.c        **** }
+ 230:main.c        **** 
+ 231:main.c        **** /* Delay */
+ 232:main.c        **** void delay_ms( uint8_t ms ) {
+ 269               		.stabn	68,0,232,.LM21-.LFBB7
+ 270               	.LM21:
+ 271               	.LFBB7:
+ 272 0072 CF93      		push r28
+ 273 0074 DF93      		push r29
+ 274 0076 00D0      		rcall .
+ 275 0078 CDB7      		in r28,__SP_L__
+ 276 007a DEB7      		in r29,__SP_H__
+ 277               	/* prologue: function */
+ 278               	/* frame size = 2 */
+ 279               	/* stack size = 4 */
+ 280               	.L__stack_usage = 4
+ 233:main.c        ****   uint16_t delay_count = FOSC / 17500;
+GAS LISTING /tmp/ccd8o0Ig.s 			page 10
+
+
+ 234:main.c        **** 
+ 235:main.c        ****   volatile uint16_t i;
+ 236:main.c        **** 
+ 237:main.c        ****   while ( ms != 0 ) {
+ 281               		.stabn	68,0,237,.LM22-.LFBB7
+ 282               	.LM22:
+ 283 007c 00C0      		rjmp .L13
+ 284               	.L16:
+ 238:main.c        ****     for (i=0; i != delay_count; i++ );
+ 285               		.stabn	68,0,238,.LM23-.LFBB7
+ 286               	.LM23:
+ 287 007e 1A82      		std Y+2,__zero_reg__
+ 288 0080 1982      		std Y+1,__zero_reg__
+ 289 0082 00C0      		rjmp .L14
+ 290               	.L15:
+ 291               		.stabn	68,0,238,.LM24-.LFBB7
+ 292               	.LM24:
+ 293 0084 2981      		ldd r18,Y+1
+ 294 0086 3A81      		ldd r19,Y+2
+ 295 0088 2F5F      		subi r18,-1
+ 296 008a 3F4F      		sbci r19,-1
+ 297 008c 3A83      		std Y+2,r19
+ 298 008e 2983      		std Y+1,r18
+ 299               	.L14:
+ 300               		.stabn	68,0,238,.LM25-.LFBB7
+ 301               	.LM25:
+ 302 0090 2981      		ldd r18,Y+1
+ 303 0092 3A81      		ldd r19,Y+2
+ 304 0094 2D32      		cpi r18,45
+ 305 0096 3105      		cpc r19,__zero_reg__
+ 306 0098 01F4      		brne .L15
+ 239:main.c        ****     ms--;
+ 307               		.stabn	68,0,239,.LM26-.LFBB7
+ 308               	.LM26:
+ 309 009a 8150      		subi r24,lo8(-(-1))
+ 310               	.L13:
+ 237:main.c        ****   while ( ms != 0 ) {
+ 311               		.stabn	68,0,237,.LM27-.LFBB7
+ 312               	.LM27:
+ 313 009c 8111      		cpse r24,__zero_reg__
+ 314 009e 00C0      		rjmp .L16
+ 315               	/* epilogue start */
+ 240:main.c        ****   }
+ 241:main.c        **** }
+ 316               		.stabn	68,0,241,.LM28-.LFBB7
+ 317               	.LM28:
+ 318 00a0 0F90      		pop __tmp_reg__
+ 319 00a2 0F90      		pop __tmp_reg__
+ 320 00a4 DF91      		pop r29
+ 321 00a6 CF91      		pop r28
+ 322 00a8 0895      		ret
+ 323               		.size	delay_ms, .-delay_ms
+ 324               		.stabs	"i:(0,16)=B(7,4)",128,0,235,1
+ 325               		.stabn	192,0,0,.LFBB7-.LFBB7
+ 326               		.stabn	224,0,0,.Lscope7-.LFBB7
+ 327               	.Lscope7:
+ 328               		.stabs	"",36,0,0,.Lscope7-.LFBB7
+GAS LISTING /tmp/ccd8o0Ig.s 			page 11
+
+
+ 329               		.stabd	78,0,0
+ 330               		.stabs	"__vector_1:F(0,15)",36,0,210,__vector_1
+ 331               	.global	__vector_1
+ 332               		.type	__vector_1, @function
+ 333               	__vector_1:
+ 334               		.stabd	46,0,0
+ 210:main.c        **** ISR ( INT0_vect ) {
+ 335               		.stabn	68,0,210,.LM29-.LFBB8
+ 336               	.LM29:
+ 337               	.LFBB8:
+ 338 00aa 1F92      		push r1
+ 339 00ac 0F92      		push r0
+ 340 00ae 0FB6      		in r0,__SREG__
+ 341 00b0 0F92      		push r0
+ 342 00b2 1124      		clr __zero_reg__
+ 343 00b4 2F93      		push r18
+ 344 00b6 3F93      		push r19
+ 345 00b8 4F93      		push r20
+ 346 00ba 5F93      		push r21
+ 347 00bc 6F93      		push r22
+ 348 00be 7F93      		push r23
+ 349 00c0 8F93      		push r24
+ 350 00c2 9F93      		push r25
+ 351 00c4 AF93      		push r26
+ 352 00c6 BF93      		push r27
+ 353 00c8 EF93      		push r30
+ 354 00ca FF93      		push r31
+ 355               	/* prologue: Signal */
+ 356               	/* frame size = 0 */
+ 357               	/* stack size = 15 */
+ 358               	.L__stack_usage = 15
+ 216:main.c        ****   delay_ms(100);
+ 359               		.stabn	68,0,216,.LM30-.LFBB8
+ 360               	.LM30:
+ 361 00cc 84E6      		ldi r24,lo8(100)
+ 362 00ce 0E94 0000 		call delay_ms
+ 217:main.c        ****   delay_ms(100);
+ 363               		.stabn	68,0,217,.LM31-.LFBB8
+ 364               	.LM31:
+ 365 00d2 84E6      		ldi r24,lo8(100)
+ 366 00d4 0E94 0000 		call delay_ms
+ 218:main.c        ****   delay_ms(100);
+ 367               		.stabn	68,0,218,.LM32-.LFBB8
+ 368               	.LM32:
+ 369 00d8 84E6      		ldi r24,lo8(100)
+ 370 00da 0E94 0000 		call delay_ms
+ 219:main.c        ****   delay_ms(100);
+ 371               		.stabn	68,0,219,.LM33-.LFBB8
+ 372               	.LM33:
+ 373 00de 84E6      		ldi r24,lo8(100)
+ 374 00e0 0E94 0000 		call delay_ms
+ 220:main.c        ****   delay_ms(100);
+ 375               		.stabn	68,0,220,.LM34-.LFBB8
+ 376               	.LM34:
+ 377 00e4 84E6      		ldi r24,lo8(100)
+ 378 00e6 0E94 0000 		call delay_ms
+ 221:main.c        ****   delay_ms(100);
+GAS LISTING /tmp/ccd8o0Ig.s 			page 12
+
+
+ 379               		.stabn	68,0,221,.LM35-.LFBB8
+ 380               	.LM35:
+ 381 00ea 84E6      		ldi r24,lo8(100)
+ 382 00ec 0E94 0000 		call delay_ms
+ 222:main.c        ****   delay_ms(100);
+ 383               		.stabn	68,0,222,.LM36-.LFBB8
+ 384               	.LM36:
+ 385 00f0 84E6      		ldi r24,lo8(100)
+ 386 00f2 0E94 0000 		call delay_ms
+ 223:main.c        ****   delay_ms(100);
+ 387               		.stabn	68,0,223,.LM37-.LFBB8
+ 388               	.LM37:
+ 389 00f6 84E6      		ldi r24,lo8(100)
+ 390 00f8 0E94 0000 		call delay_ms
+ 224:main.c        ****   delay_ms(100);
+ 391               		.stabn	68,0,224,.LM38-.LFBB8
+ 392               	.LM38:
+ 393 00fc 84E6      		ldi r24,lo8(100)
+ 394 00fe 0E94 0000 		call delay_ms
+ 225:main.c        ****   delay_ms(100);
+ 395               		.stabn	68,0,225,.LM39-.LFBB8
+ 396               	.LM39:
+ 397 0102 84E6      		ldi r24,lo8(100)
+ 398 0104 0E94 0000 		call delay_ms
+ 227:main.c        ****   USART_Send(received_byte);
+ 399               		.stabn	68,0,227,.LM40-.LFBB8
+ 400               	.LM40:
+ 401 0108 8FEF      		ldi r24,lo8(-1)
+ 402 010a 0E94 0000 		call USART_Send
+ 403               	/* epilogue start */
+ 229:main.c        **** }
+ 404               		.stabn	68,0,229,.LM41-.LFBB8
+ 405               	.LM41:
+ 406 010e FF91      		pop r31
+ 407 0110 EF91      		pop r30
+ 408 0112 BF91      		pop r27
+ 409 0114 AF91      		pop r26
+ 410 0116 9F91      		pop r25
+ 411 0118 8F91      		pop r24
+ 412 011a 7F91      		pop r23
+ 413 011c 6F91      		pop r22
+ 414 011e 5F91      		pop r21
+ 415 0120 4F91      		pop r20
+ 416 0122 3F91      		pop r19
+ 417 0124 2F91      		pop r18
+ 418 0126 0F90      		pop r0
+ 419 0128 0FBE      		out __SREG__,r0
+ 420 012a 0F90      		pop r0
+ 421 012c 1F90      		pop r1
+ 422 012e 1895      		reti
+ 423               		.size	__vector_1, .-__vector_1
+ 424               	.Lscope8:
+ 425               		.stabs	"",36,0,0,.Lscope8-.LFBB8
+ 426               		.stabd	78,0,0
+ 427               		.stabs	"ADC_start:F(0,15)",36,0,146,ADC_start
+ 428               	.global	ADC_start
+ 429               		.type	ADC_start, @function
+GAS LISTING /tmp/ccd8o0Ig.s 			page 13
+
+
+ 430               	ADC_start:
+ 431               		.stabd	46,0,0
+ 146:main.c        **** void ADC_start() {
+ 432               		.stabn	68,0,146,.LM42-.LFBB9
+ 433               	.LM42:
+ 434               	.LFBB9:
+ 435               	/* prologue: function */
+ 436               	/* frame size = 0 */
+ 437               	/* stack size = 0 */
+ 438               	.L__stack_usage = 0
+ 149:main.c        ****   output_low( PORTC, CONVST );
+ 439               		.stabn	68,0,149,.LM43-.LFBB9
+ 440               	.LM43:
+ 441 0130 AB98      		cbi 0x15,3
+ 153:main.c        ****   output_high( PORTC, PD );
+ 442               		.stabn	68,0,153,.LM44-.LFBB9
+ 443               	.LM44:
+ 444 0132 A89A      		sbi 0x15,0
+ 154:main.c        ****   output_high( PORTC, CS );
+ 445               		.stabn	68,0,154,.LM45-.LFBB9
+ 446               	.LM45:
+ 447 0134 AA9A      		sbi 0x15,2
+ 155:main.c        ****   output_high( PORTC, RD );
+ 448               		.stabn	68,0,155,.LM46-.LFBB9
+ 449               	.LM46:
+ 450 0136 A99A      		sbi 0x15,1
+ 158:main.c        ****   output_high( PORTC, CONVST );
+ 451               		.stabn	68,0,158,.LM47-.LFBB9
+ 452               	.LM47:
+ 453 0138 AB9A      		sbi 0x15,3
+ 159:main.c        ****   delay_ms(10); /* t_power-up */
+ 454               		.stabn	68,0,159,.LM48-.LFBB9
+ 455               	.LM48:
+ 456 013a 8AE0      		ldi r24,lo8(10)
+ 457 013c 0E94 0000 		call delay_ms
+ 160:main.c        ****   output_low( PORTC, CONVST );
+ 458               		.stabn	68,0,160,.LM49-.LFBB9
+ 459               	.LM49:
+ 460 0140 AB98      		cbi 0x15,3
+ 461 0142 0895      		ret
+ 462               		.size	ADC_start, .-ADC_start
+ 463               	.Lscope9:
+ 464               		.stabs	"",36,0,0,.Lscope9-.LFBB9
+ 465               		.stabd	78,0,0
+ 466               		.section	.text.startup,"ax",@progbits
+ 467               		.stabs	"main:F(0,1)",36,0,52,main
+ 468               	.global	main
+ 469               		.type	main, @function
+ 470               	main:
+ 471               		.stabd	46,0,0
+  52:main.c        **** int main() {
+ 472               		.stabn	68,0,52,.LM50-.LFBB10
+ 473               	.LM50:
+ 474               	.LFBB10:
+ 475               	/* prologue: function */
+ 476               	/* frame size = 0 */
+ 477               	/* stack size = 0 */
+GAS LISTING /tmp/ccd8o0Ig.s 			page 14
+
+
+ 478               	.L__stack_usage = 0
+  58:main.c        ****   ADC_Init();
+ 479               		.stabn	68,0,58,.LM51-.LFBB10
+ 480               	.LM51:
+ 481 0000 0E94 0000 		call ADC_Init
+  60:main.c        ****   ADC_start();
+ 482               		.stabn	68,0,60,.LM52-.LFBB10
+ 483               	.LM52:
+ 484 0004 0E94 0000 		call ADC_start
+  63:main.c        ****   sei();
+ 485               		.stabn	68,0,63,.LM53-.LFBB10
+ 486               	.LM53:
+ 487               	/* #APP */
+ 488               	 ;  63 "main.c" 1
+ 489 0008 7894      		sei
+ 490               	 ;  0 "" 2
+ 491               	/* #NOAPP */
+ 492               	.L20:
+ 493 000a 00C0      		rjmp .L20
+ 494               		.size	main, .-main
+ 495               	.Lscope10:
+ 496               		.stabs	"",36,0,0,.Lscope10-.LFBB10
+ 497               		.stabd	78,0,0
+ 498               		.text
+ 499               		.stabs	"",100,0,0,.Letext0
+ 500               	.Letext0:
+ 501               		.ident	"GCC: (GNU) 4.7.2"
+GAS LISTING /tmp/ccd8o0Ig.s 			page 15
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+     /tmp/ccd8o0Ig.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccd8o0Ig.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccd8o0Ig.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccd8o0Ig.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccd8o0Ig.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccd8o0Ig.s:78     .text:0000000000000000 ADC_Init
+     /tmp/ccd8o0Ig.s:110    .text:000000000000000c ADC_read
+     /tmp/ccd8o0Ig.s:127    .text:000000000000000e ADC_stop
+     /tmp/ccd8o0Ig.s:144    .text:0000000000000010 USART_Init
+     /tmp/ccd8o0Ig.s:179    .text:0000000000000020 USART_Send
+     /tmp/ccd8o0Ig.s:204    .text:0000000000000028 __vector_19
+     /tmp/ccd8o0Ig.s:267    .text:0000000000000072 delay_ms
+     /tmp/ccd8o0Ig.s:333    .text:00000000000000aa __vector_1
+     /tmp/ccd8o0Ig.s:430    .text:0000000000000130 ADC_start
+     /tmp/ccd8o0Ig.s:470    .text.startup:0000000000000000 main
+
+NO UNDEFINED SYMBOLS
