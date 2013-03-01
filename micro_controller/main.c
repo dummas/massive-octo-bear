@@ -12,6 +12,14 @@
 #define CS PC2
 /* ADC CONVST */
 #define CONVST PC3
+/* ADC interrupt */
+#define ADC_INTERRUPT_PIN PD2
+#define ADC_INTERRUPT_INT INT0
+#define ADC_INTERRUPT_INT_VECTOR INT0_vect
+
+/* DEBUG */
+#define DEBUG_OUTPUT_PIN 1
+#define DEBUG_INTERRUPT_PIN 2
 
 #define output_low(port,pin) port &= ~(1<<pin)
 #define output_high(port,pin) port |= (1<<pin)
@@ -46,7 +54,50 @@ void ADC_stop( void );
 
 /* DELAY */
 void delay_ms( uint8_t );
+/* Debug matters */
+void debug_init( void );
+void debug_click( void );
+void debug_interrupt( void );
 
+void a_set_input( uint8_t );
+void a_set_output( uint8_t );
+void a_output_low( uint8_t );
+void a_output_high( uint8_t );
+
+void b_set_input( uint8_t );
+void b_set_output( uint8_t );
+void b_output_low( uint8_t );
+void b_output_high( uint8_t );
+
+void c_set_input( uint8_t );
+void c_set_output( uint8_t );
+void c_output_low( uint8_t );
+void c_output_high( uint8_t );
+
+void d_set_input( uint8_t );
+void d_set_output( uint8_t );
+void d_output_low( uint8_t );
+void d_output_high( uint8_t );
+
+void a_set_input( uint8_t pin ) { set_input( DDRA, pin ); }
+void a_set_output( uint8_t pin ) { set_output( DDRA, pin ); }
+void a_output_low( uint8_t pin ) { output_low( PORTA, pin ); }
+void a_output_high( uint8_t pin ) { output_high( PORTA, pin ); }
+
+void b_set_input( uint8_t pin ) { set_input( DDRB, pin ); }
+void b_set_output( uint8_t pin ) { set_output( DDRB, pin ); }
+void b_output_low( uint8_t pin ) { output_low( PORTB, pin ); }
+void b_output_high( uint8_t pin ) { output_high( PORTB, pin ); }
+
+void c_set_input( uint8_t pin ) { set_input( DDRC, pin ); }
+void c_set_output( uint8_t pin ) { set_output( DDRC, pin ); }
+void c_output_low( uint8_t pin ) { output_low( PORTC, pin ); }
+void c_output_high( uint8_t pin ) { output_high( PORTC, pin ); }
+
+void d_set_input( uint8_t pin ) { set_input( DDRD, pin ); }
+void d_set_output( uint8_t pin ) { set_output( DDRD, pin ); }
+void da_output_low( uint8_t pin ) { output_low( PORTD, pin ); }
+void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
 
 /* Main function */
 int main() {
@@ -54,46 +105,40 @@ int main() {
   /* Initialize the USART for communication with Bluetooth module */
   // USART_Init( MUBRR );
 
-  /* Initialize the interrupts */
-  ADC_Init();
+  // debug_init();
+  b_set_output(1);
+  DDRB = 0xFF;/* Set everything input */
+  PORTB = (1<<0); /* set high */
 
-  ADC_start();
+  // debug_click();
+
+  /* Initialize the interrupts */
+  // ADC_Init();
 
   /* Enable global interrupts */
-  sei();
+  // sei();
+
+  /* Send enable to the ADC */
+  // ADC_start();
 
   /* Forever alone loop */
   for (;;) {
-    /* Keep it usable -- using event-driven programing */
-    // output_high( PORTC, CONVST );
-    // delay_ms(100); 
-    // output_low( PORTC, CONVST );
-    // delay_ms(100);
-    // delay_ms(100);
-    // delay_ms(100);
-    // delay_ms(100);
-    // delay_ms(100);
-    // delay_ms(100);
-    // delay_ms(100);
-    // output_high( PORTC, CONVST );
-    // delay_ms(100); 
-    // delay_ms(100); 
-    // delay_ms(100); 
-    // delay_ms(100); 
-    // delay_ms(100); 
-    // delay_ms(100); 
-    // delay_ms(100); 
-    // delay_ms(100); 
   }
-
 
   return 1;
 }
 
 /* ADC intialization with interrupt */
 void ADC_Init() {
-  /* Enable interrupt on Port D, pin 2 (int0) */
+  /* Status register - SREG, enable global interrupts */
+  // SREG |= (1 << 7);
+  /* General Interrupt Control Register - GICR, enable PCIE1 interrupt GROUP */
+  // GICR |= (1 << ADC_INTERRUPT_INT);
+  /* Enable interrupt on Port C, pin 4 (pcint12) */
+  // set_output( DDRD, ADC_INTERRUPT_PIN );
+
   // PCMSK0 |= (1<<PIND2);
+  // PCMSK1 |= (1 << PCINT12);
 
   /* Interrupt on failing edge */
   // MCUCR = (1 << ISC01 ) | (1 << ISC00);
@@ -158,6 +203,9 @@ void ADC_start() {
   output_high( PORTC, CONVST );
   delay_ms(10); /* t_power-up */
   output_low( PORTC, CONVST );
+
+  /* Make a debug interrupt */
+  debug_interrupt();
 }
 
 void ADC_stop() {
@@ -207,17 +255,21 @@ ISR ( USART0_RXC_vect ) {
 }
 
 /* Interrupts on ADC finish */
-ISR ( INT0_vect ) {
+ISR ( ADC_INTERRUPT_INT_VECTOR ) {
 
-  unsigned char received_byte;
+  // debug_click();
 
-  received_byte = 0xFF;
+  // unsigned char received_byte;
+  
+  // received_byte = 0xFF;
 
-  USART_Send(received_byte);
+  // USART_Send(received_byte);
   
 }
 
-/* Delay */
+/**
+* Delay utility
+***/
 void delay_ms( uint8_t ms ) {
   uint16_t delay_count = FOSC / 17500;
 
@@ -227,4 +279,46 @@ void delay_ms( uint8_t ms ) {
     for (i=0; i != delay_count; i++ );
     ms--;
   }
+}
+
+/**
+* Initialization of debug pins
+***/
+void debug_init() {
+  
+  /* Set debug output pin as output */
+  set_output( DDRB, DEBUG_OUTPUT_PIN );
+  /* Set debug interrupt pin as output */
+  set_output( DDRB, DEBUG_INTERRUPT_PIN );
+
+  /* Set debug output pin as low */
+  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  /* Set debug interrupt pin as low */
+  output_low( PORTB, DEBUG_INTERRUPT_PIN );
+}
+
+/**
+* Makes debug pin `interrupt`
+***/
+void debug_interrupt() {
+  
+  output_low( PORTB, DEBUG_INTERRUPT_PIN );
+  delay_ms(10);
+  output_high( PORTB, DEBUG_INTERRUPT_PIN );
+  delay_ms(10);
+  output_low( PORTB, DEBUG_INTERRUPT_PIN );
+
+}
+
+/**
+* Sets the debug pin to low - high - low
+* Indication of the step was passed
+***/
+void debug_click() {
+  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  delay_ms(100);
+  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  delay_ms(100);
+  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  delay_ms(100);
 }
