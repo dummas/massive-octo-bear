@@ -18,13 +18,21 @@
 #define ADC_INTERRUPT_INT_VECTOR INT0_vect
 
 /* DEBUG */
-#define DEBUG_OUTPUT_PIN 1
-#define DEBUG_INTERRUPT_PIN 2
+#define DEBUG_OUTPUT_PIN PB0
+#define DEBUG_INTERRUPT_PIN PB1
+#define DEBUG_DATA_PIN PB2
 
 #define output_low(port,pin) port &= ~(1<<pin)
 #define output_high(port,pin) port |= (1<<pin)
 #define set_input(portdir,pin) portdir &= ~(1<<pin)
 #define set_output(portdir,pin) portdir |= (1<<pin)
+
+#define bit_get(p,m) ((p) & (m))
+#define bit_set(p,m) ((p) |= (m))
+#define bit_clear(p,m) ((p) &= ~(m))
+#define bit_flip(p,m) ((p) ^= (m))
+#define bit_write(c,p,m) (c ? bit_set(p,m) : bit_clear(p,m))
+#define BIT(x) (0x01 << (x))
 
 #include <string.h>
 #include <avr/io.h>
@@ -58,6 +66,7 @@ void delay_ms( uint8_t );
 void debug_init( void );
 void debug_click( void );
 void debug_interrupt( void );
+void debug_data( uint8_t );
 
 void a_set_input( uint8_t );
 void a_set_output( uint8_t );
@@ -105,21 +114,16 @@ int main() {
   /* Initialize the USART for communication with Bluetooth module */
   // USART_Init( MUBRR );
 
-  // debug_init();
-  b_set_output(1);
-  DDRB = 0xFF;/* Set everything input */
-  PORTB = (1<<0); /* set high */
-
-  // debug_click();
+  debug_init();
 
   /* Initialize the interrupts */
-  // ADC_Init();
+  ADC_Init();
 
   /* Enable global interrupts */
-  // sei();
+  sei();
 
   /* Send enable to the ADC */
-  // ADC_start();
+  ADC_start();
 
   /* Forever alone loop */
   for (;;) {
@@ -141,41 +145,44 @@ void ADC_Init() {
   // PCMSK1 |= (1 << PCINT12);
 
   /* Interrupt on failing edge */
-  // MCUCR = (1 << ISC01 ) | (1 << ISC00);
+  MCUCR = (1 << ISC01 ) | (0 << ISC00);
 
   /* Turn on interrupts */
-  //GIMSK |= (1 << INT0 );
-  set_output( DDRC, PD );
+  GICR |= (1 << INT0 );
+  c_set_output( PD );
 
   /* SET RD as output */
-  //DDRC |= (1 << 2);
-  set_output( DDRC, RD );
+  c_set_output( RD );
 
   /* Set CR as output */
-  set_output( DDRC, CS );
+  c_set_output( CS );
 
   /* Set CONVST as output */
-  set_output( DDRC, CONVST );
+  c_set_output( CONVST );
 
   /* Set PORTA as input */
   DDRA = 0x00;
+
+  // debug_click();
 
 }
 
 /* Make the ADC readout */ 
 void ADC_read() {
 
+  uint8_t adc_value;
+
   // unsigned char adc_value;
 
-  // output_low( PORTC, RD );
-  // output_low( PORTC, CS );
-
-  // /* Read the PORTA */
-  // adc_value = PORTA;
+  c_output_low( CS );
+  c_output_low( RD );
+  
+  /* Read the PORTA */
+  adc_value = PINA;
 
   // /* Make RD low */
-  // output_high( DDRC, RD );
-  // output_high( DDRC, CS );
+  c_output_high( RD );
+  c_output_high( CS );
 
   // /* Stop ADC */
   // ADC_stop();
@@ -184,6 +191,7 @@ void ADC_read() {
 
   // /* Start conversion again */
   // ADC_start();
+  debug_data(adc_value);
   
 }
 
@@ -191,21 +199,23 @@ void ADC_read() {
 void ADC_start() {
 
   /* MODE 2 Operation */
-  output_low( PORTC, CONVST );
+  c_output_low( CONVST );
 
   /* Start of conversion */
   /* Set ADC to power up */
-  output_high( PORTC, PD );
-  output_high( PORTC, CS );
-  output_high( PORTC, RD );
+  c_output_high( PD );
+  c_output_high( CS );
+  c_output_high( RD );
   /* Start conversation */
 
-  output_high( PORTC, CONVST );
-  delay_ms(10); /* t_power-up */
-  output_low( PORTC, CONVST );
+  c_output_low( CONVST );
 
-  /* Make a debug interrupt */
-  debug_interrupt();
+  c_output_high( CONVST );
+  delay_ms(10); /* t_power-up */
+  c_output_low( CONVST );
+
+  ADC_read();
+
 }
 
 void ADC_stop() {
@@ -257,7 +267,7 @@ ISR ( USART0_RXC_vect ) {
 /* Interrupts on ADC finish */
 ISR ( ADC_INTERRUPT_INT_VECTOR ) {
 
-  // debug_click();
+  ADC_read();
 
   // unsigned char received_byte;
   
@@ -287,27 +297,29 @@ void delay_ms( uint8_t ms ) {
 void debug_init() {
   
   /* Set debug output pin as output */
-  set_output( DDRB, DEBUG_OUTPUT_PIN );
+  b_set_output( DEBUG_OUTPUT_PIN );
   /* Set debug interrupt pin as output */
-  set_output( DDRB, DEBUG_INTERRUPT_PIN );
+  b_set_output( DEBUG_INTERRUPT_PIN );
+  /* Set debug data pin as output */
+  b_set_output( DEBUG_DATA_PIN );
 
   /* Set debug output pin as low */
-  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  b_output_low( DEBUG_OUTPUT_PIN );
   /* Set debug interrupt pin as low */
-  output_low( PORTB, DEBUG_INTERRUPT_PIN );
+  b_output_low( DEBUG_INTERRUPT_PIN );
+  /* Set debug data pin as low */
+  b_output_low( DEBUG_DATA_PIN );
 }
 
 /**
 * Makes debug pin `interrupt`
 ***/
 void debug_interrupt() {
-  
-  output_low( PORTB, DEBUG_INTERRUPT_PIN );
-  delay_ms(10);
-  output_high( PORTB, DEBUG_INTERRUPT_PIN );
-  delay_ms(10);
-  output_low( PORTB, DEBUG_INTERRUPT_PIN );
-
+  b_output_low( DEBUG_INTERRUPT_PIN );
+  delay_ms(100);
+  b_output_high( DEBUG_INTERRUPT_PIN );
+  delay_ms(100);
+  b_output_low( DEBUG_INTERRUPT_PIN );
 }
 
 /**
@@ -315,10 +327,42 @@ void debug_interrupt() {
 * Indication of the step was passed
 ***/
 void debug_click() {
-  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  b_output_low( DEBUG_OUTPUT_PIN );
   delay_ms(100);
-  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  b_output_high( DEBUG_OUTPUT_PIN );
   delay_ms(100);
-  output_low( PORTB, DEBUG_OUTPUT_PIN );
+  b_output_low( DEBUG_OUTPUT_PIN );
   delay_ms(100);
+}
+
+/**
+* Debug data, coming from the ADC
+***/
+void debug_data( uint8_t data ) {
+  
+  /* Mask */
+  int8_t mask = 0;
+  /* Masked data */
+  int8_t masked_data = 0;
+  /* Loop variable */
+  uint8_t i = 0;
+
+  for (i=0; i < 8; i++) {
+    mask = 1 << i;
+    masked_data = data & mask;
+    if (masked_data >> i == 1) {
+      b_output_high( DEBUG_DATA_PIN );
+    } else {
+      b_output_low( DEBUG_DATA_PIN );
+    }
+    delay_ms(100);
+    b_output_low( DEBUG_DATA_PIN );
+    delay_ms(100);
+  }
+
+  b_output_low( DEBUG_DATA_PIN );
+  delay_ms(100);
+  b_output_high( DEBUG_DATA_PIN );
+  delay_ms(100);
+  b_output_low( DEBUG_DATA_PIN );
 }
