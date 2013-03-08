@@ -254,8 +254,6 @@ $(TRG): $(OBJDEPS)
 .cpp.s .cc.s .C.s :
 	$(CC) -S $(CFLAGS) $(CPPFLAGS) $< -o $@
 
-
-
 #### Generating object files ####
 # object from C
 .c.o: 

@@ -1,6 +1,6 @@
-#define FOSC 800000 // Clock speed
+#define FOSC 160000 // Clock speed
 #define BAUD 9600
-#define MUBRR FOSC/16/BAUD-1
+#define MUBRR FOSC/(BAUD)-1
 
 /* Some macros */
 
@@ -14,13 +14,12 @@
 #define CONVST PC3
 /* ADC interrupt */
 #define ADC_INTERRUPT_PIN PD2
-#define ADC_INTERRUPT_INT INT0
 #define ADC_INTERRUPT_INT_VECTOR INT0_vect
 
 /* DEBUG */
 #define DEBUG_OUTPUT_PIN PB0
 #define DEBUG_INTERRUPT_PIN PB1
-#define DEBUG_DATA_PIN PB2
+#define DEBUG_DATA_PIN PB4
 
 #define output_low(port,pin) port &= ~(1<<pin)
 #define output_high(port,pin) port |= (1<<pin)
@@ -38,16 +37,23 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+int main( void );
 
-/* Main function */
-int main ( void );
+/* USART Bluetooth initialization */
+void USART_bluetooth_init( unsigned int );
+/* USART Bluetooth send */
+void USART_bluetooth_send( unsigned char );
+/* USART Bluetooth receive */
+void USART_bluetooth_recv( unsigned char );
+/* USART bluetooth check */
+void USART_bluetooth_check( void );
 
-/* USART */
-
-/* Usart initialization */
-void USART_Init ( unsigned int );
-/* Usart send */
-void USART_Send ( unsigned char );
+/* USART debug initialization */
+void USART_debug_init( unsigned int );
+/* USART debug send */
+void USART_debug_send( unsigned char );
+/* USART debug receive */
+void USART_debug_recv( unsigned char );
 
 /* External ADC part */
 
@@ -112,7 +118,9 @@ void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
 int main() {
 
   /* Initialize the USART for communication with Bluetooth module */
-  // USART_Init( MUBRR );
+  USART_bluetooth_init( MUBRR );
+
+  USART_debug_init( MUBRR );
 
   debug_init();
 
@@ -123,7 +131,9 @@ int main() {
   sei();
 
   /* Send enable to the ADC */
-  ADC_start();
+  // ADC_start();
+
+  USART_bluetooth_check();
 
   /* Forever alone loop */
   for (;;) {
@@ -134,21 +144,13 @@ int main() {
 
 /* ADC intialization with interrupt */
 void ADC_Init() {
-  /* Status register - SREG, enable global interrupts */
-  // SREG |= (1 << 7);
-  /* General Interrupt Control Register - GICR, enable PCIE1 interrupt GROUP */
-  // GICR |= (1 << ADC_INTERRUPT_INT);
-  /* Enable interrupt on Port C, pin 4 (pcint12) */
-  // set_output( DDRD, ADC_INTERRUPT_PIN );
-
-  // PCMSK0 |= (1<<PIND2);
-  // PCMSK1 |= (1 << PCINT12);
 
   /* Interrupt on failing edge */
   MCUCR = (1 << ISC01 ) | (0 << ISC00);
 
   /* Turn on interrupts */
   GICR |= (1 << INT0 );
+  /* Set PD as output */
   c_set_output( PD );
 
   /* SET RD as output */
@@ -163,35 +165,34 @@ void ADC_Init() {
   /* Set PORTA as input */
   DDRA = 0x00;
 
-  // debug_click();
-
 }
 
 /* Make the ADC readout */ 
 void ADC_read() {
 
-  uint8_t adc_value;
+  // uint8_t adc_value;
 
-  // unsigned char adc_value;
-
+  /* Chip select as low */
   c_output_low( CS );
+  /* Read data as low */
   c_output_low( RD );
   
   /* Read the PORTA */
-  adc_value = PINA;
+  // adc_value = PINA;
 
-  // /* Make RD low */
+  /* Make Read Data high */
   c_output_high( RD );
+  /* Make Chip select high */
   c_output_high( CS );
 
-  // /* Stop ADC */
+  /* Stop ADC */
   // ADC_stop();
 
   // delay_ms(100);
 
   // /* Start conversion again */
   // ADC_start();
-  debug_data(adc_value);
+  // debug_data(adc_value);
   
 }
 
@@ -201,20 +202,21 @@ void ADC_start() {
   /* MODE 2 Operation */
   c_output_low( CONVST );
 
-  /* Start of conversion */
-  /* Set ADC to power up */
+  /* Pre-start configuration */
+  /* Wake up ADC - high */
   c_output_high( PD );
+  /* Chip select - high */
   c_output_high( CS );
+  /* Read data - high */
   c_output_high( RD );
-  /* Start conversation */
-
+  /* Start of conversation - low */
   c_output_low( CONVST );
 
+  /* Start of conversation - high */
   c_output_high( CONVST );
   delay_ms(10); /* t_power-up */
+  /* Start of conversation - low */
   c_output_low( CONVST );
-
-  ADC_read();
 
 }
 
@@ -226,42 +228,135 @@ void ADC_stop() {
 
 
 /* USART initialization */
-void USART_Init( unsigned int ubrr ) {
+void USART_bluetooth_init( unsigned int ubrr ) {
+
+  /* Enable received and transmitter */
+  UCSR0B = (1<<RXEN0)|(1<<TXEN0);
+
+  /* Enable receive interrupt */
+  UCSR0B |= (1 << RXCIE0);
+
+  UCSR0A = (1 << U2X0);
+
+  /* Use 8bit chacter sizes */
+  UCSR0C = (1 << URSEL0) | (1 << UCSZ00) | (1 << UCSZ01);
+
   /* Set baud rate */
   UBRR0H = (unsigned char) (ubrr>>8);
   UBRR0L = (unsigned char) ubrr;
-  /* Enable received and transmitter */
-  UCSR0B = (1<<RXEN0)|(1<<TXEN0);
-  /* Enable receive interrupt */
-  UCSR0B |= ( 1 << RXCIE0 );
-  /* Use 8bit chacter sizes */
-  UCSR0C = ( 1 << URSEL0 ) | ( 1 << UCSZ00 ) | ( 1 << UCSZ01 );
+
+  d_set_output( PD0 );
+  d_set_output( PD1 );
+
 }
 
 /* USART send byte */ 
-void USART_Send( unsigned char send_byte ) {
+void USART_bluetooth_send( unsigned char send_byte ) {
 
   /* Wait until USART is ready */
-  while (( UCSR0A & (1 << UDRE0 ) ) == 0) {};
+  while (( UCSR0A & (1 << UDRE0) ) == 0) {};
 
   /* Send the byte */
   UDR0 = send_byte;
 
+  // USART_debug_send( send_byte );
+
+}
+
+void USART_bluetooth_recv( unsigned char recv_byte ) {
+
+  /* Echo to Arduino */
+  USART_debug_recv( recv_byte );
+}
+
+void USART_bluetooth_check() {
+
+  debug_click();
+
+  /* Send A */
+  // USART_bluetooth_send(0x41);
+  /* Send T */
+  // USART_bluetooth_send(0x54);
+  /* Send cr */
+  delay_ms(10);
+  USART_debug_send(0x0d);
+  delay_ms(10);
+  USART_debug_send(0x41);
+
+
+}
+
+
+/**
+* USART DEBUG
+***/
+
+void USART_debug_init( unsigned int ubrr ) {
+  
+  /* Enable received and transmitter */
+  UCSR1B = (1<<RXEN1)|(1<<TXEN1);
+
+  /* Enable receive interrupt */
+  UCSR1B |= (1 << RXCIE1);
+
+  UCSR1A |= (1 << U2X1);
+
+  /* Use 8bit character sizes */
+  UCSR1C = (1 << URSEL1) | (1<<UCSZ10) | (1<<UCSZ11);
+
+  /* Set baud rate */
+  UBRR1H = (unsigned char) (ubrr>>8);
+  UBRR1L = (unsigned char) ubrr;
+
+  /* Set output */
+  b_set_output( PB2 );
+  b_set_output( PB3 );
+
+}
+
+void USART_debug_send( unsigned char send_byte ) {
+
+  /* Wait until USART is ready */
+  while (( UCSR1A & (1<<UDRE1)) == 0) {};
+
+  /* Send the byte */
+  UDR1 = send_byte;
+
+  /* Wait until USART is ready */
+  // while (( UCSR1A & (1<<UDRE1)) == 0) {};
+
+  // /* Flush the send */
+  // UDR1 = 0x00;
+}
+
+void USART_debug_recv( unsigned char recv_byte ) {
+
+  /* Echo to the Arduino */
+  USART_debug_send( recv_byte );
 }
 
 /* Events */
 
-/* USART receive event */
+/* USART bluetooth receive event */
 ISR ( USART0_RXC_vect ) {
 
-  unsigned char received_byte;
+  unsigned char recv_byte;
 
   // Fetch the received byte value into the variable
-  received_byte = UDR0;
+  recv_byte = UDR0;
 
   // Echo back
-  USART_Send( received_byte );
+  USART_bluetooth_recv( recv_byte );
+}
 
+/* USART debug receive event */
+ISR ( USART1_RXC_vect ) {
+
+  unsigned char recv_byte;
+
+  recv_byte = UDR1;
+
+  USART_debug_recv( recv_byte );
 }
 
 /* Interrupts on ADC finish */
@@ -270,11 +365,8 @@ ISR ( ADC_INTERRUPT_INT_VECTOR ) {
   ADC_read();
 
   // unsigned char received_byte;
-  
   // received_byte = 0xFF;
-
-  // USART_Send(received_byte);
-  
+  // USART_Send(received_byte); 
 }
 
 /**
