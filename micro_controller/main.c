@@ -1,6 +1,5 @@
-#define FOSC 160000 // Clock speed
-#define BAUD 9600
-#define MUBRR FOSC/(BAUD)-1
+#define F_CPU 1600000 // Clock speed
+#define BAUD 19200
 
 /* Some macros */
 
@@ -40,7 +39,7 @@
 int main( void );
 
 /* USART Bluetooth initialization */
-void USART_bluetooth_init( unsigned int );
+void USART_bluetooth_init( void );
 /* USART Bluetooth send */
 void USART_bluetooth_send( unsigned char );
 /* USART Bluetooth receive */
@@ -49,7 +48,7 @@ void USART_bluetooth_recv( unsigned char );
 void USART_bluetooth_check( void );
 
 /* USART debug initialization */
-void USART_debug_init( unsigned int );
+void USART_debug_init( void );
 /* USART debug send */
 void USART_debug_send( unsigned char );
 /* USART debug receive */
@@ -118,9 +117,9 @@ void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
 int main() {
 
   /* Initialize the USART for communication with Bluetooth module */
-  USART_bluetooth_init( MUBRR );
+  USART_bluetooth_init( );
 
-  USART_debug_init( MUBRR );
+  USART_debug_init( );
 
   debug_init();
 
@@ -228,7 +227,7 @@ void ADC_stop() {
 
 
 /* USART initialization */
-void USART_bluetooth_init( unsigned int ubrr ) {
+void USART_bluetooth_init() {
 
   /* Enable received and transmitter */
   UCSR0B = (1<<RXEN0)|(1<<TXEN0);
@@ -238,12 +237,17 @@ void USART_bluetooth_init( unsigned int ubrr ) {
 
   UCSR0A = (1 << U2X0);
 
+  UCSR0C |= (1<< URSEL0);
+
   /* Use 8bit chacter sizes */
-  UCSR0C = (1 << URSEL0) | (1 << UCSZ00) | (1 << UCSZ01);
+  UCSR0C |= (1 << UCSZ00) | (1 << UCSZ01);
 
   /* Set baud rate */
-  UBRR0H = (unsigned char) (ubrr>>8);
-  UBRR0L = (unsigned char) ubrr;
+  /* 9600 -- 16Mhz */
+  UBRR0H = (68) >> 8;
+  UBRR0L = (68);
+  // UBRR0H = ((F_CPU / 16 + BAUD / 2) / BAUD - 1) >> 8;
+  // UBRR0L = ((F_CPU / 16 + BAUD / 2) / BAUD - 1);
 
   d_set_output( PD0 );
   d_set_output( PD1 );
@@ -278,11 +282,8 @@ void USART_bluetooth_check() {
   /* Send T */
   // USART_bluetooth_send(0x54);
   /* Send cr */
-  delay_ms(10);
-  USART_debug_send(0x0d);
-  delay_ms(10);
-  USART_debug_send(0x41);
-
+  // USART_debug_send(0x01);
+  // USART_debug_send(0x10);
 
 }
 
@@ -291,26 +292,41 @@ void USART_bluetooth_check() {
 * USART DEBUG
 ***/
 
-void USART_debug_init( unsigned int ubrr ) {
+void USART_debug_init() {
   
   /* Enable received and transmitter */
   UCSR1B = (1<<RXEN1)|(1<<TXEN1);
 
   /* Enable receive interrupt */
   UCSR1B |= (1 << RXCIE1);
+  UCSR1B |= (0 << UCSZ12);
 
-  UCSR1A |= (1 << U2X1);
-
+  /* Normal asynchronous mode */
+  UCSR1A |= (0 << U2X1);
+  /* Select */
+  UCSR1C = (1 << URSEL1) | (0 << UMSEL1) | (0<<UPM10) | (0<<UPM11) | (1<<UCSZ10) | (1<<UCSZ11);
+  /* Asynchronous mode */
+  // UCSR1C |= (0 << UMSEL1);
+  /* Parity mode -- disabled */
+  // UCSR1C |= (0 << UPM10);
+  // UCSR1C |= (0 << UPM11);
+  /* Stop bit -- 1 bit */
+  // UCSR1C |= (1 << USBS1);
   /* Use 8bit character sizes */
-  UCSR1C = (1 << URSEL1) | (1<<UCSZ10) | (1<<UCSZ11);
+  // UCSR1C |= (1<<UCSZ10) | (1<<UCSZ11);
+  // UBRR1H |= (1 << URSEL1);
 
   /* Set baud rate */
-  UBRR1H = (unsigned char) (ubrr>>8);
-  UBRR1L = (unsigned char) ubrr;
+  /* 38400 -- 16Mhz */
+  UBRR1H = (51) >> 8;
+  UBRR1L = (51);
 
   /* Set output */
-  b_set_output( PB2 );
-  b_set_output( PB3 );
+  // b_set_output( PB2 );
+  // b_set_output( PB3 );
+
+  // b_output_high( PB2 );
+  // b_output_high( PB3 );
 
 }
 
@@ -320,7 +336,8 @@ void USART_debug_send( unsigned char send_byte ) {
   while (( UCSR1A & (1<<UDRE1)) == 0) {};
 
   /* Send the byte */
-  UDR1 = send_byte;
+  // UDR1 = send_byte;
+  UDR1 = 0x55;
 
   /* Wait until USART is ready */
   // while (( UCSR1A & (1<<UDRE1)) == 0) {};
@@ -342,6 +359,8 @@ ISR ( USART0_RXC_vect ) {
 
   unsigned char recv_byte;
 
+  while ( !(UCSR0A & (1<<RXC0))) {};
+
   // Fetch the received byte value into the variable
   recv_byte = UDR0;
 
@@ -354,7 +373,16 @@ ISR ( USART1_RXC_vect ) {
 
   unsigned char recv_byte;
 
+  while ( !(UCSR1A & (1<<RXC1))) {};
+
   recv_byte = UDR1;
+
+  // delay_ms(100);
+
+  // while (( UCSR1A & (1<<UDRE1)) == 0) {};
+
+  /* Send the byte */
+  // UDR1 = recv_byte;
 
   USART_debug_recv( recv_byte );
 }
@@ -373,7 +401,7 @@ ISR ( ADC_INTERRUPT_INT_VECTOR ) {
 * Delay utility
 ***/
 void delay_ms( uint8_t ms ) {
-  uint16_t delay_count = FOSC / 17500;
+  uint16_t delay_count = F_CPU / 14500;
 
   volatile uint16_t i;
 
@@ -408,7 +436,6 @@ void debug_init() {
 ***/
 void debug_interrupt() {
   b_output_low( DEBUG_INTERRUPT_PIN );
-  delay_ms(100);
   b_output_high( DEBUG_INTERRUPT_PIN );
   delay_ms(100);
   b_output_low( DEBUG_INTERRUPT_PIN );
@@ -420,11 +447,9 @@ void debug_interrupt() {
 ***/
 void debug_click() {
   b_output_low( DEBUG_OUTPUT_PIN );
-  delay_ms(100);
   b_output_high( DEBUG_OUTPUT_PIN );
   delay_ms(100);
   b_output_low( DEBUG_OUTPUT_PIN );
-  delay_ms(100);
 }
 
 /**

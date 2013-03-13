@@ -22,11 +22,11 @@ ser.isOpen()
 
 try:
     while 1:
-        out = ''
+        out = 0x00
         while ser.inWaiting() > 0:
-            out += ser.read(1)
-        if out.__len__() > 1:
+            out = ser.read(1)
             print ">> " + out.encode('hex')
+
 
 except KeyboardInterrupt:
     print "KeyboardInterrupt, closing port"
