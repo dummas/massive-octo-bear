@@ -1,10 +1,9 @@
-#/usr/bin/python2
-
+#/usr/bin/env python2
 import serial
 
 # Configuration
 serial_port = '/dev/ttyACM0'
-serial_baud = 9600
+serial_baud = 19200
 
 ser = serial.Serial(
     port=serial_port,

@@ -15,6 +15,11 @@
 #define ADC_INTERRUPT_PIN PD2
 #define ADC_INTERRUPT_INT_VECTOR INT0_vect
 
+/* Bluetooth control */
+#define BLUETOOTH_RTS_PIN PD3
+#define BLUETOOTH_CTS_PIN PD4
+#define BLUETOOTH_RTS_INTERRUPT_VECTOR INT1_vect
+
 /* DEBUG */
 #define DEBUG_OUTPUT_PIN PB0
 #define DEBUG_INTERRUPT_PIN PB1
@@ -35,6 +40,7 @@
 #include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/sfr_defs.h>
 
 int main( void );
 
@@ -110,29 +116,33 @@ void c_output_high( uint8_t pin ) { output_high( PORTC, pin ); }
 
 void d_set_input( uint8_t pin ) { set_input( DDRD, pin ); }
 void d_set_output( uint8_t pin ) { set_output( DDRD, pin ); }
-void da_output_low( uint8_t pin ) { output_low( PORTD, pin ); }
+void d_output_low( uint8_t pin ) { output_low( PORTD, pin ); }
 void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
 
 /* Main function */
 int main() {
 
-  /* Initialize the USART for communication with Bluetooth module */
-  USART_bluetooth_init( );
-
-  USART_debug_init( );
+  USART_debug_init();
 
   debug_init();
 
   /* Initialize the interrupts */
   ADC_Init();
 
+  /* Initialize the USART for communication with Bluetooth module */
+  USART_bluetooth_init();
+
   /* Enable global interrupts */
   sei();
+
+  // delay_ms(32000);
 
   /* Send enable to the ADC */
   // ADC_start();
 
   USART_bluetooth_check();
+
+  // debug_interrupt();
 
   /* Forever alone loop */
   for (;;) {
@@ -226,40 +236,49 @@ void ADC_stop() {
 }
 
 
-/* USART initialization */
+/**
+* Communication with Bluetooth USART initialization
+* Configuration: 19200/8-N-1
+* TODO: do a better initialization set-up
+***/
 void USART_bluetooth_init() {
+
+  /* Interrupt on falling edge */
+  MCUCR = (1 << ISC11 ) | (1 << ISC10);
+
+  /* Turn on interrupts */
+  GICR |= (1 << INT1 );
 
   /* Enable received and transmitter */
   UCSR0B = (1<<RXEN0)|(1<<TXEN0);
 
   /* Enable receive interrupt */
   UCSR0B |= (1 << RXCIE0);
+  UCSR0B |= (0 << UCSZ02);
 
-  UCSR0A = (1 << U2X0);
+  UCSR0A |= (0 << U2X0);
 
-  UCSR0C |= (1<< URSEL0);
-
-  /* Use 8bit chacter sizes */
-  UCSR0C |= (1 << UCSZ00) | (1 << UCSZ01);
+  /* Use 8 bit configuration sizes */
+  UCSR0C = (1 << URSEL0) | (0 << UMSEL0) | (0<<UPM00) | (0<<UPM01) | (1<<UCSZ00) | (1<<UCSZ01);
 
   /* Set baud rate */
-  /* 9600 -- 16Mhz */
-  UBRR0H = (68) >> 8;
-  UBRR0L = (68);
-  // UBRR0H = ((F_CPU / 16 + BAUD / 2) / BAUD - 1) >> 8;
-  // UBRR0L = ((F_CPU / 16 + BAUD / 2) / BAUD - 1);
+  /* 19200 -- 16Mhz */
+  UBRR0H = (51) >> 8;
+  UBRR0L = (51);
 
-  d_set_output( PD0 );
-  d_set_output( PD1 );
+  d_set_output( BLUETOOTH_CTS_PIN );
+  // d_set_input( BLUETOOTH_RTS_PIN );
+  d_output_high( BLUETOOTH_CTS_PIN );
+  delay_ms(100);
 
 }
 
 /* USART send byte */ 
 void USART_bluetooth_send( unsigned char send_byte ) {
 
-  /* Wait until USART is ready */
-  while (( UCSR0A & (1 << UDRE0) ) == 0) {};
+  // loop_until_bit_is_clear( PIND, BLUETOOTH_RTS_PIN );
 
+  while (( UCSR0A & (1<<UDRE0)) == 0) {};
   /* Send the byte */
   UDR0 = send_byte;
 
@@ -269,27 +288,40 @@ void USART_bluetooth_send( unsigned char send_byte ) {
 
 void USART_bluetooth_recv( unsigned char recv_byte ) {
 
-  /* Echo to Arduino */
-  USART_debug_recv( recv_byte );
+  /* Echo to debug */
+  USART_debug_send( recv_byte );
 }
 
 void USART_bluetooth_check() {
 
-  debug_click();
+  /* Request line */
+  d_output_low( BLUETOOTH_CTS_PIN );
 
-  /* Send A */
-  // USART_bluetooth_send(0x41);
-  /* Send T */
-  // USART_bluetooth_send(0x54);
-  /* Send cr */
-  // USART_debug_send(0x01);
-  // USART_debug_send(0x10);
+  // /* Send A */
+  USART_bluetooth_send(0x41);
+  // /* Send T */
+  USART_bluetooth_send(0x54);
+  // /* Send + */
+  USART_bluetooth_send(0x2b);
+  // /* Send V */
+  USART_bluetooth_send(0x56);
+  // /* Send E */
+  USART_bluetooth_send(0x45);
+  // /* Send R */
+  USART_bluetooth_send(0x52);
+  // /* Send cr */
+  USART_bluetooth_send(0x0d);
+
+  /* End line */
+  // d_output_high( BLUETOOTH_CTS_PIN );
 
 }
 
 
 /**
-* USART DEBUG
+* Communication with debug USART initialization
+* Configuration: 19200/8-N-1
+* TODO: do a better configuration set-up
 ***/
 
 void USART_debug_init() {
@@ -321,13 +353,6 @@ void USART_debug_init() {
   UBRR1H = (51) >> 8;
   UBRR1L = (51);
 
-  /* Set output */
-  // b_set_output( PB2 );
-  // b_set_output( PB3 );
-
-  // b_output_high( PB2 );
-  // b_output_high( PB3 );
-
 }
 
 void USART_debug_send( unsigned char send_byte ) {
@@ -336,8 +361,8 @@ void USART_debug_send( unsigned char send_byte ) {
   while (( UCSR1A & (1<<UDRE1)) == 0) {};
 
   /* Send the byte */
-  // UDR1 = send_byte;
-  UDR1 = 0x55;
+  UDR1 = send_byte;
+  // UDR1 = 0x55;
 
   /* Wait until USART is ready */
   // while (( UCSR1A & (1<<UDRE1)) == 0) {};
@@ -359,7 +384,7 @@ ISR ( USART0_RXC_vect ) {
 
   unsigned char recv_byte;
 
-  while ( !(UCSR0A & (1<<RXC0))) {};
+  // while ( !(UCSR0A & (1<<RXC0))) {};
 
   // Fetch the received byte value into the variable
   recv_byte = UDR0;
@@ -373,7 +398,7 @@ ISR ( USART1_RXC_vect ) {
 
   unsigned char recv_byte;
 
-  while ( !(UCSR1A & (1<<RXC1))) {};
+  // while ( !(UCSR1A & (1<<RXC1))) {};
 
   recv_byte = UDR1;
 
@@ -395,6 +420,11 @@ ISR ( ADC_INTERRUPT_INT_VECTOR ) {
   // unsigned char received_byte;
   // received_byte = 0xFF;
   // USART_Send(received_byte); 
+}
+
+ISR( BLUETOOTH_RTS_INTERRUPT_VECTOR ) {
+  d_output_low( BLUETOOTH_CTS_PIN );
+  debug_click();
 }
 
 /**
@@ -437,7 +467,7 @@ void debug_init() {
 void debug_interrupt() {
   b_output_low( DEBUG_INTERRUPT_PIN );
   b_output_high( DEBUG_INTERRUPT_PIN );
-  delay_ms(100);
+  delay_ms(10);
   b_output_low( DEBUG_INTERRUPT_PIN );
 }
 
@@ -448,7 +478,7 @@ void debug_interrupt() {
 void debug_click() {
   b_output_low( DEBUG_OUTPUT_PIN );
   b_output_high( DEBUG_OUTPUT_PIN );
-  delay_ms(100);
+  delay_ms(10);
   b_output_low( DEBUG_OUTPUT_PIN );
 }
 
