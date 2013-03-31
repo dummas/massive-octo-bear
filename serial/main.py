@@ -2,7 +2,7 @@
 import serial
 
 # Configuration
-serial_port = '/dev/ttyACM0'
+serial_port = '/dev/ttyACM1'
 serial_baud = 19200
 
 ser = serial.Serial(
@@ -21,10 +21,10 @@ ser.isOpen()
 
 try:
     while 1:
-        out = 0x00
+        out = ''
         while ser.inWaiting() > 0:
             out = ser.read(1)
-            print ">> " + out.encode('hex')
+            print bytes(out)
 
 
 except KeyboardInterrupt:
