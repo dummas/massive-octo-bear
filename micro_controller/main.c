@@ -41,8 +41,11 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sfr_defs.h>
+#include <avr/power.h>
 
 int main( void );
+
+void clock_scale_change( void );
 
 /* USART Bluetooth initialization */
 void USART_bluetooth_init( void );
@@ -124,29 +127,52 @@ void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
 /* Some global stuff */
 char usart_buffer[10];
 uint8_t usart_buffer_i = 0;
+unsigned char recv_byte;
+
 
 /* Main function */
 int main() {
 
+  /* 
+  Make 8Mhz from 16Mhz to work on 3.3V,
+  Scale 1
+  */
+  clock_prescale_set(1);
+
+  /*
+  Initialization of USART debug unit
+  */
   USART_debug_init();
 
+  /*
+  Debugging units
+  */
   debug_init();
 
-  /* Initialize the interrupts */
+  /* 
+  Initialize the interrupts 
+  */
   ADC_Init();
 
   /* Initialize the USART for communication with Bluetooth module */
+
   USART_bluetooth_init();
 
-  /* Enable global interrupts */
+  /*
+  Enable global interrupts
+  */
   sei();
 
   // delay_ms(32000);
+  // USART_debug_send(0x48);
 
   /* Send enable to the ADC */
   // ADC_start();
 
+  // USART_bluetooth_send(0x48);
   // USART_bluetooth_check();
+
+  USART_debug_send('H');
 
   // debug_click();
   // b_output_high( DEBUG_OUTPUT_PIN );
@@ -251,27 +277,31 @@ void ADC_stop() {
 void USART_bluetooth_init() {
 
   /* Interrupt on falling edge */
-  MCUCR = (1 << ISC11 ) | (1 << ISC10);
+  // MCUCR = (1 << ISC11 ) | (1 << ISC10);
 
   /* Turn on interrupts */
-  GICR |= (1 << INT1);
+  // GICR |= (1 << INT1);
 
   /* Enable received and transmitter */
-  UCSR0B = (1<<RXEN0) | (1<<TXEN0);
+  UCSR0B |= (1<<RXEN0) | (1<<TXEN0);
 
   /* Enable receive interrupt */
   UCSR0B |= (1 << RXCIE0);
+  /* 8 bit configuration */
   UCSR0B |= (0 << UCSZ02);
-
+  /* No double speed option */
   UCSR0A |= (0 << U2X0);
 
   /* Use 8 bit configuration sizes */
-  UCSR0C = (1 << URSEL0) | (0 << UMSEL0) | (0<<UPM00) | (0<<UPM01) | (1<<UCSZ00) | (1<<UCSZ01);
+  UCSR0C |= (0 << URSEL0);
+  UCSR0C |= (0 << UMSEL0) | (0<<UPM00) | (0<<UPM01) | (1<<UCSZ00) | (1<<UCSZ01);
+
+  // UBRR0H |= (1 << URSEL0);
 
   /* Set baud rate */
   /* 19200 -- 16Mhz */
-  UBRR0H = (51) >> 8;
-  UBRR0L = (51);
+  UBRR0H = (25) >> 8;
+  UBRR0L = (25);
 
   d_set_output( BLUETOOTH_CTS_PIN );
   // // d_set_input( BLUETOOTH_RTS_PIN );
@@ -289,7 +319,7 @@ void USART_bluetooth_send( unsigned char send_byte ) {
   /* Send the byte */
   UDR0 = send_byte;
 
-  USART_debug_send( send_byte );
+  // USART_debug_send( send_byte );
 
 }
 
@@ -297,6 +327,7 @@ void USART_bluetooth_recv( unsigned char recv_byte ) {
 
   /* Echo to debug */
   USART_debug_send( recv_byte );
+  // USART_bluetooth_send(recv_byte);
   // usart_buffer[usart_buffer_i] = recv_byte;
   // usart_buffer_i = usart_buffer_i + 1;
   // if (recv_byte == 0x0d) {
@@ -326,6 +357,7 @@ void USART_bluetooth_check() {
 
   /* End line */
   // d_output_high( BLUETOOTH_CTS_PIN );
+  // USART_debug_send(0x48);
 
 }
 
@@ -341,14 +373,15 @@ void USART_debug_init() {
   /* Enable received and transmitter */
   UCSR1B = (1<<RXEN1)|(1<<TXEN1);
 
-  /* Enable receive interrupt */
+  // /* Enable receive interrupt */
   UCSR1B |= (1 << RXCIE1);
   UCSR1B |= (0 << UCSZ12);
 
-  /* Normal asynchronous mode */
+  // /* Normal asynchronous mode */
   UCSR1A |= (0 << U2X1);
-  /* Select */
+  // /* Select */
   UCSR1C = (1 << URSEL1) | (0 << UMSEL1) | (0<<UPM10) | (0<<UPM11) | (1<<UCSZ10) | (1<<UCSZ11);
+
   /* Asynchronous mode */
   // UCSR1C |= (0 << UMSEL1);
   /* Parity mode -- disabled */
@@ -361,21 +394,22 @@ void USART_debug_init() {
   // UBRR1H |= (1 << URSEL1);
 
   /* Set baud rate */
-  /* 19200 -- 16Mhz */
-  UBRR1H = (51) >> 8;
-  UBRR1L = (51);
+  /* 19200 -- 8Mhz */
+  UBRR1H = (25) >> 8;
+  UBRR1L = (25);
 
 }
 
 void USART_debug_send( unsigned char send_byte ) {
+
+  delay_ms(1);
 
   /* Wait until USART is ready */
   while (( UCSR1A & (1<<UDRE1)) == 0) {};
 
   /* Send the byte */
   UDR1 = send_byte;
-  // UDR1 = 0x55;
-
+  // UDR1 = 0x48;
   /* Wait until USART is ready */
   // while (( UCSR1A & (1<<UDRE1)) == 0) {};
 
@@ -405,23 +439,24 @@ void USART_debug_recv( unsigned char recv_byte ) {
 /* USART bluetooth receive event */
 ISR ( USART0_RXC_vect ) {
 
-  b_output_high( DEBUG_OUTPUT_PIN );
-
-  unsigned char recv_byte;
+  // unsigned char recv_byte;
 
   // Fetch the received byte value into the variable
   recv_byte = UDR0;
 
   // Echo to the debug
   // USART_bluetooth_recv(recv_byte);
+  USART_debug_send(recv_byte);
+  // b_output_high( DEBUG_OUTPUT_PIN );
+  // debug_click();
 }
 
 /* USART debug receive event */
 ISR ( USART1_RXC_vect ) {
 
-  b_output_high( DEBUG_OUTPUT_PIN );
+  // b_output_high( DEBUG_OUTPUT_PIN );
 
-  unsigned char recv_byte;
+  // unsigned char recv_byte;
 
   // while ( !(UCSR1A & (1<<RXC1))) {};
 
@@ -435,7 +470,6 @@ ISR ( USART1_RXC_vect ) {
   // UDR1 = recv_byte;
 
   USART_debug_send( recv_byte );
-
   
 }
 
@@ -451,6 +485,24 @@ ISR ( ADC_INTERRUPT_INT_VECTOR ) {
 
 ISR( BLUETOOTH_RTS_INTERRUPT_VECTOR ) {
   d_output_low( BLUETOOTH_CTS_PIN );
+}
+
+/**
+* Clock prescale change
+**/
+void clock_scale_change() {
+  /* 
+  Enabling clock pre-scale register change 
+  and disable all the interrupts
+  */
+  CLKPR |= (1 << CLKPCE);
+
+  /* Clock division factor by 2 */
+  CLKPR = (0 << CLKPCE) | (0 << CLKPS0) | (0 << CLKPS1);
+  /*
+  Enable the interrupts
+  */
+  // CLKPR |= (0 << CLKPCE);
 }
 
 /**
