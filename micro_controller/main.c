@@ -37,7 +37,11 @@
 #define bit_write(c,p,m) (c ? bit_set(p,m) : bit_clear(p,m))
 #define BIT(x) (0x01 << (x))
 
+/* Configuration matters */
+#define buffer_length 25
+
 #include <string.h>
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sfr_defs.h>
@@ -51,17 +55,21 @@ void clock_scale_change( void );
 void USART_bluetooth_init( void );
 /* USART Bluetooth send */
 void USART_bluetooth_send( unsigned char );
+void USART_bluetooth_send_message( char* );
 /* USART Bluetooth receive */
 void USART_bluetooth_recv( unsigned char );
 /* USART bluetooth check */
-void USART_bluetooth_check( void );
+void USART_bluetooth_at_version( void );
+void USART_bluetooth_at_echo( char );
+void USART_bluetooth_at_discover( char );
+void USART_bluetooth_at_response( char );
 
 /* USART debug initialization */
 void USART_debug_init( void );
 /* USART debug send */
 void USART_debug_send( unsigned char );
 /* USART debug send a buffer */
-void USART_debug_send_buffer( void );
+void USART_debug_send_message( char * );
 /* USART debug receive */
 void USART_debug_recv( unsigned char );
 
@@ -124,11 +132,29 @@ void d_set_output( uint8_t pin ) { set_output( DDRD, pin ); }
 void d_output_low( uint8_t pin ) { output_low( PORTD, pin ); }
 void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
 
-/* Some global stuff */
-char usart_buffer[10];
-uint8_t usart_buffer_i = 0;
+char *append(const char *, char);
+
+/*
+Some global stuff
+*/
+/* The buffer for receiving data from the bluetooth module */
+char buffer_bluetooth[buffer_length];
+/* Buffer iterator */
+uint8_t buffer_i;
+/* Received data char */
 unsigned char recv_byte;
 
+int states[] = {
+  1, /* Initial state of the system */
+  2, /* Bluetooth check */
+  3, /* Error state */
+  4, /* Waiting for the bluetooth connection from the host */
+  5, /* Bluetooth client is connected, waiting for the command */
+  6, /* Collect data and send it to the bluetooth immediatelly */
+};
+
+/* Defining the initial state of the system */
+int state = 0;
 
 /* Main function */
 int main() {
@@ -154,8 +180,9 @@ int main() {
   */
   ADC_Init();
 
-  /* Initialize the USART for communication with Bluetooth module */
-
+  /*
+  Initialize the USART for communication with Bluetooth module
+  */
   USART_bluetooth_init();
 
   /*
@@ -170,12 +197,27 @@ int main() {
   // ADC_start();
 
   // USART_bluetooth_send(0x48);
-  // USART_bluetooth_check();
+  
+  // USART_debug_send('H');
 
-  USART_debug_send('H');
+  // USART_bluetooth_send_message("AT+NAME=patric");
+
+  // MASTER switch
+  // USART_bluetooth_send_message("AT+ROLES");
+
+  // QUERY
+  // USART_bluetooth_send_message("AT+ENQ");
+  // USART_bluetooth_send_message("AT+ROLEM");
+  // Modem enable
+  // USART_bluetooth_send_message("AT+MODEM-");
+  // USART_bluetooth_send(0x48);
+
+  // USART_bluetooth_check_alive();
 
   // debug_click();
   // b_output_high( DEBUG_OUTPUT_PIN );
+
+  USART_bluetooth_check_alive();
 
   /* Forever alone loop */
   for (;;) {
@@ -228,7 +270,7 @@ void ADC_read() {
   c_output_high( CS );
 
   /* Stop ADC */
-  // ADC_stop();
+  ADC_stop();
 
   // delay_ms(100);
 
@@ -264,10 +306,9 @@ void ADC_start() {
 
 void ADC_stop() {
 
-  // output_low( PORTC, CS );
+  output_low( PORTC, CS );
 
 }
-
 
 /**
 * Communication with Bluetooth USART initialization
@@ -303,61 +344,131 @@ void USART_bluetooth_init() {
   UBRR0H = (25) >> 8;
   UBRR0L = (25);
 
-  d_set_output( BLUETOOTH_CTS_PIN );
-  // // d_set_input( BLUETOOTH_RTS_PIN );
-  d_output_high( BLUETOOTH_CTS_PIN );
-  // delay_ms(100);
+  d_set_output(BLUETOOTH_CTS_PIN);
+  /* Set low -- make the data transfer happen */
+  d_output_low(BLUETOOTH_CTS_PIN);
 
 }
 
 /* USART send byte */ 
-void USART_bluetooth_send( unsigned char send_byte ) {
+void USART_bluetooth_send(unsigned char send_byte) {
 
-  // loop_until_bit_is_clear( PIND, BLUETOOTH_RTS_PIN );
+  /* Wait until the register is ready */
+  while ((UCSR0A & (1<<UDRE0)) == 0) {};
 
-  while (( UCSR0A & (1<<UDRE0)) == 0) {};
   /* Send the byte */
   UDR0 = send_byte;
 
-  // USART_debug_send( send_byte );
-
 }
 
-void USART_bluetooth_recv( unsigned char recv_byte ) {
-
+/**
+* Bluetooth receive event handler
+**/
+void USART_bluetooth_recv(unsigned char recv_byte) {
   /* Echo to debug */
-  USART_debug_send( recv_byte );
-  // USART_bluetooth_send(recv_byte);
-  // usart_buffer[usart_buffer_i] = recv_byte;
-  // usart_buffer_i = usart_buffer_i + 1;
-  // if (recv_byte == 0x0d) {
-  //   USART_debug_send_buffer();
-  // }
+  // USART_debug_send( recv_byte );
+
+  /* Append receiving byte */
+  buffer_bluetooth[buffer_i] = recv_byte;
+  if (buffer_i < buffer_length) {
+    /*
+    We still have the space for more bytes
+    */
+    buffer_i = buffer_i + 1;
+  } else {
+    /*
+    No more spaces are available, need to
+    do something about it
+    */
+    /* Resetting the buffer */
+    buffer_i = 0;
+    memset(buffer_bluetooth, 0, buffer_length);
+  }
+  if (buffer_i > 0) {
+    /* Check if the last received messages where cr,lf */
+    if (buffer_bluetooth[buffer_i] == 0x0a && buffer_bluetooth[buffer_i-1] == 0x0d) {
+      /* Make a message, that the buffer is fully received */
+      USART_debug_send_message(buffer_bluetooth);
+      /* Reseting the buffer */
+      buffer_i = 0;
+      memset(buffer_bluetooth, 0, buffer_length);
+    }
+  }
 }
 
-void USART_bluetooth_check() {
+/**
+* Check if bluetooth is alive
+**/
+void USART_bluetooth_at_version() {
+  /* 
+  * AT+VER is a basic query to check
+  * if the device is alive 
+  */
+  USART_bluetooth_send_message("AT+VER");
+}
 
-  /* Request line */
-  d_output_low( BLUETOOTH_CTS_PIN );
+/**
+* Echo settings
+* Possible options:
+* - `+` -- makes echo active
+* - `-` -- makes echo not active
+**/
+void USART_bluetooth_at_echo(char option) {
+  char *message;
+  /* Check the comming options */
+  if (option == '+' || option == '-') {
+    message = append("AT+ECHO", option);
+    USART_bluetooth_send_message(message);
+    free(message);
+  }
+}
 
-  // /* Send A */
-  USART_bluetooth_send(0x41);
-  // /* Send T */
-  USART_bluetooth_send(0x54);
-  // /* Send + */
-  // USART_bluetooth_send(0x2b);
-  // /* Send V */
-  // USART_bluetooth_send(0x56);
-  // /* Send E */
-  // USART_bluetooth_send(0x45);
-  // /* Send R */
-  // USART_bluetooth_send(0x52);
-  // /* Send cr */
+/**
+* Discover settings
+* Possible options:
+* - `+` -- makes discoverable
+* - `-` -- makes not discoverable
+**/
+void USART_bluetooth_at_discover(char option) {
+  char *message;
+  /* Check the comming options */
+  if (option == '+' || option == '-') {
+    message = append("AT+DCOV", option);
+    USART_bluetooth_send_message(message);
+    free(message);
+  }
+}
+
+/**
+* Command response settings
+* Possible options:
+* - `+` -- makes responses active
+* - `-` -- makes responses not active
+**/
+void USART_bluetooth_at_response(char option) {
+  char *message;
+  /* Check the comming options */
+  if (option == '+' || option == '-') {
+    message = append("AT+RESP", option);
+    USART_bluetooth_send_message(message);
+    free(message);
+  }
+}
+
+/**
+* Sending and receiving packages from the Bluetooth
+**/
+void USART_bluetooth_send_message(char *message) {
+  
+  uint8_t i = 0;
+  while(message[i] != '\0') {
+    /* Send the require characters */
+    USART_bluetooth_send(message[i]);
+    i = i + 1;
+    delay_ms(1);
+  }
+  /* End the message with cr */
   USART_bluetooth_send(0x0d);
-
-  /* End line */
-  // d_output_high( BLUETOOTH_CTS_PIN );
-  // USART_debug_send(0x48);
 
 }
 
@@ -367,19 +478,18 @@ void USART_bluetooth_check() {
 * Configuration: 19200/8-N-1
 * TODO: do a better configuration set-up
 ***/
-
 void USART_debug_init() {
   
   /* Enable received and transmitter */
   UCSR1B = (1<<RXEN1)|(1<<TXEN1);
 
-  // /* Enable receive interrupt */
+  /* Enable receive interrupt */
   UCSR1B |= (1 << RXCIE1);
   UCSR1B |= (0 << UCSZ12);
 
-  // /* Normal asynchronous mode */
+  /* Normal asynchronous mode */
   UCSR1A |= (0 << U2X1);
-  // /* Select */
+  /* Select */
   UCSR1C = (1 << URSEL1) | (0 << UMSEL1) | (0<<UPM10) | (0<<UPM11) | (1<<UCSZ10) | (1<<UCSZ11);
 
   /* Asynchronous mode */
@@ -402,30 +512,28 @@ void USART_debug_init() {
 
 void USART_debug_send( unsigned char send_byte ) {
 
-  delay_ms(1);
-
-  /* Wait until USART is ready */
+  /* Wait until USART1 is ready */
   while (( UCSR1A & (1<<UDRE1)) == 0) {};
 
   /* Send the byte */
   UDR1 = send_byte;
-  // UDR1 = 0x48;
-  /* Wait until USART is ready */
-  // while (( UCSR1A & (1<<UDRE1)) == 0) {};
 
-  // /* Flush the send */
-  // UDR1 = 0x00;
 }
 
 /**
-* Sending the received package from the bluetooth
+* Sending the received package from the debug
 ***/
-void USART_debug_send_buffer() {
+void USART_debug_send_message(char *message) {
+  /* Request the line */
+  d_output_low( BLUETOOTH_CTS_PIN );
   uint8_t i = 0;
-  for (i=0; i <= usart_buffer_i; i++) {
-    USART_debug_send(usart_buffer[i]);
+  while (message[i] != '\0') {
+    USART_debug_send(message[i]);
+    i = i + 1;
   }
-
+  /* END message with cr,lf */
+  USART_debug_send(0x0d);
+  USART_debug_send(0x0a);
 }
 
 void USART_debug_recv( unsigned char recv_byte ) {
@@ -438,76 +546,33 @@ void USART_debug_recv( unsigned char recv_byte ) {
 
 /* USART bluetooth receive event */
 ISR ( USART0_RXC_vect ) {
-
-  // unsigned char recv_byte;
-
-  // Fetch the received byte value into the variable
   recv_byte = UDR0;
-
-  // Echo to the debug
-  // USART_bluetooth_recv(recv_byte);
-  USART_debug_send(recv_byte);
-  // b_output_high( DEBUG_OUTPUT_PIN );
-  // debug_click();
+  USART_bluetooth_recv(recv_byte);
 }
 
 /* USART debug receive event */
 ISR ( USART1_RXC_vect ) {
-
-  // b_output_high( DEBUG_OUTPUT_PIN );
-
-  // unsigned char recv_byte;
-
-  // while ( !(UCSR1A & (1<<RXC1))) {};
-
   recv_byte = UDR1;
-
-  // delay_ms(100);
-
-  // while (( UCSR1A & (1<<UDRE1)) == 0) {};
-
-  /* Send the byte */
-  // UDR1 = recv_byte;
-
-  USART_debug_send( recv_byte );
-  
+  USART_debug_recv( recv_byte );
 }
 
-/* Interrupts on ADC finish */
+/**
+* Interrupts on ADC finish 
+**/
 ISR ( ADC_INTERRUPT_INT_VECTOR ) {
-
   ADC_read();
-
-  // unsigned char received_byte;
-  // received_byte = 0xFF;
-  // USART_Send(received_byte); 
 }
 
+/**
+* RTS line request
+**/
 ISR( BLUETOOTH_RTS_INTERRUPT_VECTOR ) {
   d_output_low( BLUETOOTH_CTS_PIN );
 }
 
 /**
-* Clock prescale change
-**/
-void clock_scale_change() {
-  /* 
-  Enabling clock pre-scale register change 
-  and disable all the interrupts
-  */
-  CLKPR |= (1 << CLKPCE);
-
-  /* Clock division factor by 2 */
-  CLKPR = (0 << CLKPCE) | (0 << CLKPS0) | (0 << CLKPS1);
-  /*
-  Enable the interrupts
-  */
-  // CLKPR |= (0 << CLKPCE);
-}
-
-/**
 * Delay utility
-***/
+**/
 void delay_ms( uint8_t ms ) {
   uint16_t delay_count = F_CPU / 14500;
 
@@ -521,7 +586,7 @@ void delay_ms( uint8_t ms ) {
 
 /**
 * Initialization of debug pins
-***/
+**/
 void debug_init() {
   
   /* Set debug output pin as output */
@@ -541,7 +606,7 @@ void debug_init() {
 
 /**
 * Makes debug pin `interrupt`
-***/
+**/
 void debug_interrupt() {
   b_output_low( DEBUG_INTERRUPT_PIN );
   b_output_high( DEBUG_INTERRUPT_PIN );
@@ -552,7 +617,7 @@ void debug_interrupt() {
 /**
 * Sets the debug pin to low - high - low
 * Indication of the step was passed
-***/
+**/
 void debug_click() {
   b_output_low( DEBUG_OUTPUT_PIN );
   b_output_high( DEBUG_OUTPUT_PIN );
@@ -560,7 +625,7 @@ void debug_click() {
 
 /**
 * Debug data, coming from the ADC
-***/
+**/
 void debug_data( uint8_t data ) {
   
   /* Mask */
@@ -588,4 +653,23 @@ void debug_data( uint8_t data ) {
   b_output_high( DEBUG_DATA_PIN );
   delay_ms(100);
   b_output_low( DEBUG_DATA_PIN );
+}
+
+/**
+* Append the character to the `string`
+**/
+char *append(const char *o, char s) {
+  /* Get the length */
+  int len = strlen(o);
+  /* Create new buffer +2 spaces */
+  char buf[len+2];
+  /* Copy the original read-only `string` */
+  strcpy(buf, o);
+  /* Append the character */
+  buf[len] = s;
+  /* Add the end to the character */
+  buf[len+1] = 0;
+  /* Return the constructed character */
+  return strdup(buf);
+
 }

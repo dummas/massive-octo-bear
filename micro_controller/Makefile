@@ -232,7 +232,8 @@ fusesread:
 fuseswrite:
 	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID) \
 	-p $(PROGRAMMER_MCU) -P $(AVRDUDE_PORT) \
-	-U lfuse:w:0xEF:m -U hfuse:w:0x99:m
+	-U lfuse:w:0x6F:m -U hfuse:w:0x99:m
+	# -U lfuse:w:0xEF:m -U hfuse:w:0x99:m
 	# -U lfuse:w:0x6F:m -U hfuse:w:0x99:m
 	# -U lfuse:w:0x62:m -U hfuse:w:0x99:m # default values
 
