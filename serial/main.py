@@ -1,6 +1,7 @@
 #/usr/bin/env python2
 import serial
 from datetime import datetime
+import time
 
 # Configuration
 serial_port = '/dev/ttyACM0'
@@ -26,10 +27,11 @@ lr_happend = False
 try:
     while 1:
         out = ''
+        time.sleep(1)
         while ser.inWaiting() > 0:
             out = ser.read()
-            # print bytes(out)
-            # print out.encode('hex')
+            # print 'bytes: ', bytes(out)
+            # print 'hex: ', out.encode('hex')
             if out.encode('hex') != '00':
                 if out.encode('hex') == '0d':
                     cr_happend = True
@@ -45,7 +47,11 @@ try:
                     word = ''
                     # print "****************"
                 else:
-                    word += out
+                    if (
+                        out.encode('hex') != '0d' and
+                        out.encode('hex') != '0a'
+                    ):
+                        word += out
                 # print bytes(out)
                 # print out.encode('hex')
 
