@@ -13,8 +13,8 @@ try:
     print "Receiving data.."
     while True:
         try:
-            socket.write(0xFF)
-            # data = socket.recv(255)
+            # socket.write(0xFF)
+            data = socket.recv(255)
         except bluetooth.BluetoothError, b:
             print "Bluetooth Error: ", b
 

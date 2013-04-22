@@ -30,28 +30,29 @@ try:
         time.sleep(1)
         while ser.inWaiting() > 0:
             out = ser.read()
+            print out
             # print 'bytes: ', bytes(out)
             # print 'hex: ', out.encode('hex')
-            if out.encode('hex') != '00':
-                if out.encode('hex') == '0d':
-                    cr_happend = True
-                if out.encode('hex') == '0a':
-                    lr_happend = True
-                if cr_happend and lr_happend:
-                    # print "****************"
-                    print datetime.now().isoformat()
-                    cr_happend = False
-                    lr_happend = False
-                    print bytes(word)
-                    print word.encode('hex')
-                    word = ''
-                    # print "****************"
-                else:
-                    if (
-                        out.encode('hex') != '0d' and
-                        out.encode('hex') != '0a'
-                    ):
-                        word += out
+            # if out.encode('hex') != '00':
+            #     if out.encode('hex') == '0d':
+            #         cr_happend = True
+            #     if out.encode('hex') == '0a':
+            #         lr_happend = True
+            #     if cr_happend and lr_happend:
+            #         # print "****************"
+            #         # print datetime.now().isoformat()
+            #         cr_happend = False
+            #         lr_happend = False
+            #         print bytes(word)
+            #         # print word.encode('hex')
+            #         word = ''
+            #         # print "****************"
+            #     else:
+            #         if (
+            #             out.encode('hex') != '0d' and
+            #             out.encode('hex') != '0a'
+            #         ):
+            #             word += out
                 # print bytes(out)
                 # print out.encode('hex')
 

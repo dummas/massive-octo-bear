@@ -47,6 +47,7 @@
 #define ERROR_STATE 4
 #define WAIT_FOR_CONNECTION 5
 #define WAIT_FOR_COMMAND 6
+#define DEBUG_STATE 7
 
 #include <string.h>
 #include <stdlib.h>
@@ -396,82 +397,82 @@ void USART_bluetooth_recv(unsigned char recv_byte) {
   // USART_debug_send_message(buffer_bluetooth);
 
   /* Check if the <cr,>lf bytes are received */
-  // if (recv_byte == 0x0a) {
-  //   // USART_debug_send_message(buffer_bluetooth);
-  //   /* Bluetooth returns this after version check */
-  //   if (msgcmp(buffer_bluetooth, "OK", 2) == 1) {
-  //     /* Bluetooth said it is ok, moving to the next state */
-  //     if (state == ERROR_STATE) {
-  //       change_state(BLUETOOTH_CONFIGURE_STATE);
-  //     }
-  //     if (state == BLUETOOTH_CONFIGURE_STATE) {
-  //       change_state(BLUETOOTH_CHECK_STATE);
-  //     }
-  //     if (state == BLUETOOTH_CHECK_STATE) {
-  //       /* Changing state to wait for bluetooth connection */
-  //       // USART_debug_send_message("OKR");
-  //       change_state(WAIT_FOR_CONNECTION);
-  //     }
-  //   }
-  //   if (msgcmp(buffer_bluetooth, "ER", 2) == 1) {
-  //     /*
-  //     If an error is received, switch to error state
-  //     */
-  //     // USART_debug_send_message("ERR");
-  //     if (state != ERROR_STATE) {
-  //       change_state(ERROR_STATE); 
-  //     }
-  //   }
-  //   /* Bluetooth returns connect after successfull conection */
-  //   if (msgcmp(buffer_bluetooth, "CO", 2) == 1) {
-  //     // USART_debug_send_message("COR");
-  //     /* If the system was waiting for connection */
-  //     if (state == WAIT_FOR_CONNECTION) {
-  //       /* Change the state to wait for command */
-  //       if (state != WAIT_FOR_COMMAND) {
-  //         change_state(WAIT_FOR_COMMAND); 
-  //       }
-  //     }
-  //   }
-  //   if (msgcmp(buffer_bluetooth, "DI", 2) == 1) {
-  //     /* 
-  //     On bluetooth disconnect, make the state of the system
-  //     to wait for bluetooth connection
-  //     */
-  //     // USART_debug_send_message("DIR");
-  //     if (state != WAIT_FOR_CONNECTION) {
-  //       change_state(WAIT_FOR_CONNECTION);
-  //     }
+  if (recv_byte == 0x0a) {
+    // USART_debug_send_message(buffer_bluetooth);
+    /* Bluetooth returns this after version check */
+    if (msgcmp(buffer_bluetooth, "OK", 2) == 1) {
+      /* Bluetooth said it is ok, moving to the next state */
+      if (state == ERROR_STATE) {
+        change_state(BLUETOOTH_CONFIGURE_STATE);
+      }
+      if (state == BLUETOOTH_CONFIGURE_STATE) {
+        change_state(BLUETOOTH_CHECK_STATE);
+      }
+      if (state == BLUETOOTH_CHECK_STATE) {
+        /* Changing state to wait for bluetooth connection */
+        // USART_debug_send_message("OKR");
+        change_state(WAIT_FOR_CONNECTION);
+      }
+    }
+    if (msgcmp(buffer_bluetooth, "ER", 2) == 1) {
+      /*
+      If an error is received, switch to error state
+      */
+      // USART_debug_send_message("ERR");
+      if (state != ERROR_STATE) {
+        change_state(ERROR_STATE); 
+      }
+    }
+    /* Bluetooth returns connect after successfull conection */
+    if (msgcmp(buffer_bluetooth, "CO", 2) == 1) {
+      // USART_debug_send_message("COR");
+      /* If the system was waiting for connection */
+      if (state == WAIT_FOR_CONNECTION) {
+        /* Change the state to wait for command */
+        if (state != WAIT_FOR_COMMAND) {
+          change_state(WAIT_FOR_COMMAND); 
+        }
+      }
+    }
+    if (msgcmp(buffer_bluetooth, "DI", 2) == 1) {
+      /* 
+      On bluetooth disconnect, make the state of the system
+      to wait for bluetooth connection
+      */
+      // USART_debug_send_message("DIR");
+      if (state != WAIT_FOR_CONNECTION) {
+        change_state(WAIT_FOR_CONNECTION);
+      }
       
-  //   }
+    }
 
-  //   /* Reset the iteration guy */
-  //   buffer_i = 0;
-  //   /* Reseting the buffer */
-  //   memset(buffer_bluetooth, 0, buffer_length);
+    /* Reset the iteration guy */
+    buffer_i = 0;
+    /* Reseting the buffer */
+    memset(buffer_bluetooth, 0, buffer_length);
 
-  // } else {
-  //   /* Append receiving byte */
-  //   buffer_bluetooth[buffer_i] = recv_byte;
-  //   /* Check the size of the buffer */
-  //   if (buffer_i < buffer_length) {
-  //     /*
-  //     We still have the space for more bytes
-  //     */
-  //     buffer_i = buffer_i + 1;
+  } else {
+    /* Append receiving byte */
+    buffer_bluetooth[buffer_i] = recv_byte;
+    /* Check the size of the buffer */
+    if (buffer_i < buffer_length) {
+      /*
+      We still have the space for more bytes
+      */
+      buffer_i = buffer_i + 1;
 
-  //   } else {
-  //     /*
-  //     No more spaces are available, need to
-  //     do something about it
-  //     */
-  //     USART_debug_send_message("E1");
-  //     /* Resetting the buffer */
-  //     buffer_i = 0;
-  //     memset(buffer_bluetooth, 0, buffer_length);
-  //     state = 3;
-  //   }
-  // }
+    } else {
+      /*
+      No more spaces are available, need to
+      do something about it
+      */
+      USART_debug_send_message("E1");
+      /* Resetting the buffer */
+      buffer_i = 0;
+      memset(buffer_bluetooth, 0, buffer_length);
+      state = 3;
+    }
+  }
 }
 
 /**
@@ -566,17 +567,20 @@ void USART_bluetooth_at_name( char * name ) {
 **/
 void USART_bluetooth_send_message(char *message) {
 
-  // while (usart_bluetooth_lock == 1) {;}
-  // usart_bluetooth_lock = 1;
+  while (usart_bluetooth_lock == 1) {;}
+  usart_bluetooth_lock = 1;
   uint8_t i = 0;
-  while(message[i] != '\0') {
+  while(message[i] != 0) {
     /* Send the require characters */
     USART_bluetooth_send(message[i]);
     i = i + 1;
   }
+  // free(message);
   /* End the message with cr */
   USART_bluetooth_send(0x0d);
-  // usart_bluetooth_lock = 0;
+  usart_bluetooth_lock = 0;
+  /* FLUSH */
+  // USART_bluetooth_send(0x00);
 
 }
 
@@ -648,8 +652,8 @@ void USART_debug_send_message(char *message) {
     i = i + 1;
   }
   /* END message with cr,lf */
-  USART_debug_send(0x0d);
-  USART_debug_send(0x0a);
+  // USART_debug_send(0x0d);
+  // USART_debug_send(0x0a);
   usart_debug_lock = 0;
 }
 
@@ -724,11 +728,11 @@ void change_state(uint8_t _state) {
       /* Debugging utilities init */
       debug_init();
       /* Set up the system for the bluetooth check */
-      // change_state(BLUETOOTH_CHECK_STATE);
+      change_state(DEBUG_STATE);
       // USART_bluetooth_at_version();
       // USART_bluetooth_send_message("AT+ENQ");
       // USART_bluetooth_send_message("AT+AUTO");
-      USART_bluetooth_send_message("AT+ENQ");
+      // USART_bluetooth_send_message("AT+ESC+");
       // USART_bluetooth_send_message("AT+RESET");
       // USART_bluetooth_send(0x41);
       // USART_bluetooth_send(0x54);
@@ -752,20 +756,21 @@ void change_state(uint8_t _state) {
       // USART_bluetooth_at_reset();
       break;
     case WAIT_FOR_CONNECTION:
-      USART_debug_send_message("WFC");
+      USART_debug_send_message("WFC1");
       /* Switch to command mode */
       // USART_bluetooth_at_escape();
       /* Waiting for the bluetooth connection from the host */
       break;
     case WAIT_FOR_COMMAND:
       /* Switch to data mode */
-      USART_bluetooth_at_auto();
+      // USART_bluetooth_at_auto();
       /* Waiting for command from the bluetooth host */
       /* Send a test data package */
-      for(;;) {
-       USART_bluetooth_send_data(0xFF); 
-      }
-      
+      USART_debug_send_message("WFC2");
+      USART_bluetooth_send_data(0x48); // [H]ello
+      break;
+    case DEBUG_STATE:
+      USART_bluetooth_send_message("AT+ENQ");
       break;
   }
 }
