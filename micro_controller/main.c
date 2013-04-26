@@ -19,6 +19,7 @@
 #define BLUETOOTH_RTS_PIN PD3
 #define BLUETOOTH_CTS_PIN PD4
 #define BLUETOOTH_RTS_INTERRUPT_VECTOR INT1_vect
+#define BLUETOOTH_RESET_PIN PD5
 
 /* DEBUG */
 #define DEBUG_OUTPUT_PIN PB0
@@ -77,6 +78,9 @@ void USART_bluetooth_at_reset( void );
 void USART_bluetooth_at_auto( void );
 void USART_bluetooth_at_name( char * );
 void USART_bluetooth_at_escape( void );
+void bluetooth_hardware_start( void );
+void bluetooth_hardware_stop( void );
+void bluetooth_hardware_reset( void );
 
 /* USART debug initialization */
 void USART_debug_init( void );
@@ -556,11 +560,37 @@ void USART_bluetooth_at_escape() {
   USART_bluetooth_send_message("+++");
 }
 
+/**
+* USART bluetooth AT name transfer
+***/
 void USART_bluetooth_at_name( char * name ) {
   char *message;
   message = append_long("AT+NAME=", name);
   USART_bluetooth_send_message(message);
   free(message);
+}
+
+/**
+* Bluetooth hardware start
+***/
+void bluetooth_hardware_start() {
+  d_output_high(BLUETOOTH_RESET_PIN);
+}
+
+/**
+* Bluetooth hardware stop
+***/
+void bluetooth_hardware_stop() {
+  d_output_low(BLUETOOTH_RESET_PIN);
+}
+
+/**
+* Bluetooth hardware reset
+***/
+void bluetooth_hardware_reset() {
+  bluetooth_hardware_stop();
+  delay_ms(10);
+  bluetooth_hardware_start();
 }
 /**
 * Sending and receiving packages from the Bluetooth
@@ -706,10 +736,6 @@ void change_state(uint8_t _state) {
   if (_state != 1) {
     char state_change_message[3];
     itoa(_state, state_change_message, 10);
-    // USART_debug_send_message("CS");
-    // USART_debug_send_message(
-      // append_long("CS-", state_change_message)
-    // );
   }
   switch( _state ) {
     case INITIALIZATION_STATE:
@@ -729,14 +755,6 @@ void change_state(uint8_t _state) {
       debug_init();
       /* Set up the system for the bluetooth check */
       change_state(DEBUG_STATE);
-      // USART_bluetooth_at_version();
-      // USART_bluetooth_send_message("AT+ENQ");
-      // USART_bluetooth_send_message("AT+AUTO");
-      // USART_bluetooth_send_message("AT+ESC+");
-      // USART_bluetooth_send_message("AT+RESET");
-      // USART_bluetooth_send(0x41);
-      // USART_bluetooth_send(0x54);
-      // USART_bluetooth_send(0x0d);
       break;
     case BLUETOOTH_CHECK_STATE:
       USART_debug_send_message("BCS");
@@ -770,6 +788,7 @@ void change_state(uint8_t _state) {
       USART_bluetooth_send_data(0x48); // [H]ello
       break;
     case DEBUG_STATE:
+      USART_debug_send_message("DS");
       USART_bluetooth_send_message("AT+ENQ");
       break;
   }

@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
     	if (pairedDevices.size() > 0) {
     		for (BluetoothDevice device : pairedDevices) {
     			Log.d(TAG, device.getName());
-    			if (device.getName() == DEVICE_NAME) {
+    			if (device.getName().equals(DEVICE_NAME)) {
     				device_device = device;
     			}
     		}
