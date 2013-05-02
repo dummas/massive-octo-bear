@@ -49,6 +49,7 @@
 #define WAIT_FOR_CONNECTION 5
 #define WAIT_FOR_COMMAND 6
 #define DEBUG_STATE 7
+#define BLUETOOTH_RESTART_STATE 8
 
 #include <string.h>
 #include <stdlib.h>
@@ -183,77 +184,15 @@ The place where all the fun happens
 */
 int main() {
 
-  /*
-  Set system state to initial
-  Set-up all the things
-  */
   change_state(INITIALIZATION_STATE);
-
-  /* 
-  Make 8Mhz from 16Mhz to work on 3.3V,
-  Scale 1
-  */
-  // clock_prescale_set(1);
-
-  /*
-  Initialization of USART debug unit
-  */
-  // USART_debug_init();
-
-  /*
-  Debugging units
-  */
-  // debug_init();
-
-  /* 
-  Initialize the interrupts 
-  */
-  // ADC_Init();
-
-  /*
-  Initialize the USART for communication with Bluetooth module
-  */
-  // USART_bluetooth_init();
-
-  /*
-  Enable global interrupts
-  */
-  // sei();
-
-  // delay_ms(32000);
-  // USART_debug_send(0x48);
-
-  /* Send enable to the ADC */
-  // ADC_start();
-
-  // USART_bluetooth_send(0x48);
-  
-  // USART_debug_send('H');
-
-  // USART_bluetooth_send_message("AT+NAME=patric");
-
-  // MASTER switch
-  // USART_bluetooth_send_message("AT+ROLES");
-
-  // QUERY
-  // USART_bluetooth_send_message("AT+ENQ");
-  // USART_bluetooth_send_message("AT+ROLEM");
-  // Modem enable
-  // USART_bluetooth_send_message("AT+MODEM-");
-  // USART_bluetooth_send(0x48);
-
-  // USART_bluetooth_check_alive();
-
-  // debug_click();
-  // b_output_high( DEBUG_OUTPUT_PIN );
-
-  /* Change the system state for bluetooth check */
-  // change_state(2);
 
   /* Forever alone loop */
   for (;;) {
   }
 
+  /*
+  * The whale of misery
+  */
   return 1;
 }
 
@@ -353,6 +292,7 @@ void USART_bluetooth_init() {
 
   /* Turn on interrupts */
   // GICR |= (1 << INT1);
+  // bluetooth_hardware_start();
 
   /* Enable received and transmitter */
   UCSR0B |= (1<<RXEN0) | (1<<TXEN0);
@@ -416,6 +356,9 @@ void USART_bluetooth_recv(unsigned char recv_byte) {
         /* Changing state to wait for bluetooth connection */
         // USART_debug_send_message("OKR");
         change_state(WAIT_FOR_CONNECTION);
+      }
+      if (state == BLUETOOTH_RESTART_STATE) {
+        change_state(BLUETOOTH_CHECK_STATE);
       }
     }
     if (msgcmp(buffer_bluetooth, "ER", 2) == 1) {
@@ -574,14 +517,14 @@ void USART_bluetooth_at_name( char * name ) {
 * Bluetooth hardware start
 ***/
 void bluetooth_hardware_start() {
-  d_output_high(BLUETOOTH_RESET_PIN);
+  d_output_low(BLUETOOTH_RESET_PIN);
 }
 
 /**
 * Bluetooth hardware stop
 ***/
 void bluetooth_hardware_stop() {
-  d_output_low(BLUETOOTH_RESET_PIN);
+  d_output_high(BLUETOOTH_RESET_PIN);
 }
 
 /**
@@ -754,7 +697,7 @@ void change_state(uint8_t _state) {
       /* Debugging utilities init */
       debug_init();
       /* Set up the system for the bluetooth check */
-      change_state(DEBUG_STATE);
+      change_state(BLUETOOTH_CHECK_STATE);
       break;
     case BLUETOOTH_CHECK_STATE:
       USART_debug_send_message("BCS");
@@ -790,6 +733,10 @@ void change_state(uint8_t _state) {
     case DEBUG_STATE:
       USART_debug_send_message("DS");
       USART_bluetooth_send_message("AT+ENQ");
+      break;
+    case BLUETOOTH_RESTART_STATE:
+      bluetooth_hardware_reset();
+      change_state(BLUETOOTH_CHECK_STATE);
       break;
   }
 }
@@ -898,6 +845,9 @@ char *append(const char *o, char s) {
 
 }
 
+/**
+* Long
+***/
 char *append_long(const char *o, const char *s) {
   uint8_t o_len = strlen(o);
   uint8_t s_len = strlen(s);

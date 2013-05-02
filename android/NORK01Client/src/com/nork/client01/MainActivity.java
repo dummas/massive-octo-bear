@@ -3,6 +3,8 @@ package com.nork.client01;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,7 +36,7 @@ public class MainActivity extends Activity {
     ConnectedThread device_connection_manager = null;
     private static final String TAG = "MainActivity";
     private static final String DEVICE_NAME = "Serial Adapter";
-    private final UUID APP_UUID = UUID.fromString("6ccf4af0-ab3f-11e2-9e96-0800200c9a66");
+    private final UUID APP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	private final static String SERVER_NAME = "MOJO";
 
 
@@ -76,6 +78,7 @@ public class MainActivity extends Activity {
 					device_connection.cancel();
 					device_connection = null;
 				}
+				finish();
 			}
 		});
     }
@@ -200,7 +203,6 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					// TODO Start pairing
-					
 				}
 			});
     		alert_dialog.show();
@@ -221,15 +223,44 @@ public class MainActivity extends Activity {
     	/**
     	 * Thread constructor
     	 * @param device
+    	 * @throws NoSuchMethodException 
+    	 * @throws InvocationTargetException 
+    	 * @throws IllegalAccessException 
+    	 * @throws IllegalArgumentException 
     	 */
     	public ConnectThread(BluetoothDevice device) {
+    		Log.d(TAG, "Connect thread constructor");
     		BluetoothSocket tmp = null;
     		mmDevice = device;
     		try {
-    			tmp = mmDevice.createInsecureRfcommSocketToServiceRecord(APP_UUID);
-    		} catch (IOException e) {
-    			
-    		}
+    			Log.d(TAG, "Create rfcomm socket");
+				tmp = mmDevice.createRfcommSocketToServiceRecord(APP_UUID);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			Method m = null;
+			try {
+				Log.d(TAG, "Module part");
+				m = mmDevice.getClass().getMethod("createRfcommSocket", new Class[] {int.class});
+			} catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        try {
+	        	Log.d(TAG, "Invoke part");
+				tmp = (BluetoothSocket) m.invoke(device, 1);
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        Log.d(TAG, "Passing socket part");
     		mmSocket = tmp;
     	}
     	
@@ -242,10 +273,11 @@ public class MainActivity extends Activity {
     		try {
     			mmSocket.connect();
     		} catch (IOException connectException) {
+    			connectException.printStackTrace();
     			try {
     				mmSocket.close();
     			} catch (IOException closeException) {
-    				
+    				closeException.printStackTrace();
     			}
     			return;
     		}
@@ -264,7 +296,6 @@ public class MainActivity extends Activity {
     		try {
 				mmSocket.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
     	}
@@ -295,7 +326,7 @@ public class MainActivity extends Activity {
     			tmpIn = socket.getInputStream();
     			tmpOut = socket.getOutputStream();
     		} catch (IOException e) {
-    			
+    			e.printStackTrace();
     		}
     		
     		mmInStream = tmpIn;
@@ -316,6 +347,7 @@ public class MainActivity extends Activity {
     				// TODO: Send the obtained bytes to the UI activity
     				
     			} catch (IOException e) {
+    				e.printStackTrace();
     				break;
     			}
     		}
