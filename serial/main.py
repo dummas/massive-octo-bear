@@ -1,6 +1,6 @@
 #/usr/bin/env python2
 import serial
-from datetime import datetime
+# from datetime import datetime
 import time
 
 # Configuration

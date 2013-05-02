@@ -292,7 +292,7 @@ void USART_bluetooth_init() {
 
   /* Turn on interrupts */
   // GICR |= (1 << INT1);
-  // bluetooth_hardware_start();
+  bluetooth_hardware_start();
 
   /* Enable received and transmitter */
   UCSR0B |= (1<<RXEN0) | (1<<TXEN0);
@@ -517,14 +517,15 @@ void USART_bluetooth_at_name( char * name ) {
 * Bluetooth hardware start
 ***/
 void bluetooth_hardware_start() {
-  d_output_low(BLUETOOTH_RESET_PIN);
+  d_set_output(BLUETOOTH_RESET_PIN);
+  d_output_high(BLUETOOTH_RESET_PIN);
 }
 
 /**
 * Bluetooth hardware stop
 ***/
 void bluetooth_hardware_stop() {
-  d_output_high(BLUETOOTH_RESET_PIN);
+  d_output_low(BLUETOOTH_RESET_PIN);
 }
 
 /**
