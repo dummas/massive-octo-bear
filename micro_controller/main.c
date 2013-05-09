@@ -49,7 +49,9 @@
 #define WAIT_FOR_CONNECTION 5
 #define WAIT_FOR_COMMAND 6
 #define DEBUG_STATE 7
-#define BLUETOOTH_RESTART_STATE 8
+#define BLUETOOTH_RESET_STATE 8
+#define DATA_START_COLLECTION_STATE 9
+#define DATA_END_COLLECTION_STATE 10
 
 #include <string.h>
 #include <stdlib.h>
@@ -357,7 +359,7 @@ void USART_bluetooth_recv(unsigned char recv_byte) {
         // USART_debug_send_message("OKR");
         change_state(WAIT_FOR_CONNECTION);
       }
-      if (state == BLUETOOTH_RESTART_STATE) {
+      if (state == BLUETOOTH_RESET_STATE) {
         change_state(BLUETOOTH_CHECK_STATE);
       }
     }
@@ -714,8 +716,10 @@ void change_state(uint8_t _state) {
       /* Error state */
       USART_debug_send_message("ES");
       // USART_bluetooth_at_escape();
-      // change_state(BLUETOOTH_CHECK_STATE);
-      // USART_bluetooth_at_reset();
+      bluetooth_hardware_reset();
+      delay_ms(100);
+      change_state(BLUETOOTH_CHECK_STATE);
+      // USART_bluetooth_at_reset()
       break;
     case WAIT_FOR_CONNECTION:
       USART_debug_send_message("WFC1");
@@ -735,7 +739,7 @@ void change_state(uint8_t _state) {
       USART_debug_send_message("DS");
       USART_bluetooth_send_message("AT+ENQ");
       break;
-    case BLUETOOTH_RESTART_STATE:
+    case BLUETOOTH_RESET_STATE:
       bluetooth_hardware_reset();
       change_state(BLUETOOTH_CHECK_STATE);
       break;
