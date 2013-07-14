@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
     ConnectThread device_connection = null;
     ConnectedThread device_connection_manager = null;
     private static final String TAG = "MainActivity";
-    private static final String DEVICE_NAME = "Serial Adapter";
+    private static final String DEVICE_NAME = "patric";
     private final UUID APP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	private final static String SERVER_NAME = "MOJO";
 
@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
     	Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
     	if (pairedDevices.size() > 0) {
     		for (BluetoothDevice device : pairedDevices) {
-    			Log.d(TAG, device.getName());
+    			Log.d(TAG, "Paired device: " + device.getName());
     			if (device.getName().equals(DEVICE_NAME)) {
     				device_device = device;
     			}

@@ -4,7 +4,7 @@ import serial
 import time
 
 # Configuration
-serial_port = '/dev/ttyACM1'
+serial_port = '/dev/ttyACM0'
 serial_baud = 19200
 
 ser = serial.Serial(

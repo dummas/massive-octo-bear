@@ -1,68 +1,9 @@
-#define F_CPU 1600000 // Clock speed
-#define BAUD 19200
-
-/* Some macros */
-
-/* ADC PD */
-#define PD PC0
-/* ADC RD */
-#define RD PC1
-/* ADC CS */
-#define CS PC2
-/* ADC CONVST */
-#define CONVST PC3
-/* ADC interrupt */
-#define ADC_INTERRUPT_PIN PD2
-#define ADC_INTERRUPT_INT_VECTOR INT0_vect
-
-/* Bluetooth control */
-#define BLUETOOTH_RTS_PIN PD3
-#define BLUETOOTH_CTS_PIN PD4
-#define BLUETOOTH_RTS_INTERRUPT_VECTOR INT1_vect
-#define BLUETOOTH_RESET_PIN PD5
-
-/* DEBUG */
-#define DEBUG_OUTPUT_PIN PB0
-#define DEBUG_INTERRUPT_PIN PB1
-#define DEBUG_DATA_PIN PB4
-
-#define output_low(port,pin) port &= ~(1<<pin)
-#define output_high(port,pin) port |= (1<<pin)
-#define set_input(portdir,pin) portdir &= ~(1<<pin)
-#define set_output(portdir,pin) portdir |= (1<<pin)
-
-#define bit_get(p,m) ((p) & (m))
-#define bit_set(p,m) ((p) |= (m))
-#define bit_clear(p,m) ((p) &= ~(m))
-#define bit_flip(p,m) ((p) ^= (m))
-#define bit_write(c,p,m) (c ? bit_set(p,m) : bit_clear(p,m))
-#define BIT(x) (0x01 << (x))
-
-/* Configuration matters */
-#define buffer_length 126
-
-/* SYSTEM STATES */
-#define INITIALIZATION_STATE 1
-#define BLUETOOTH_CHECK_STATE 2
-#define BLUETOOTH_CONFIGURE_STATE 3
-#define ERROR_STATE 4
-#define WAIT_FOR_CONNECTION 5
-#define WAIT_FOR_COMMAND 6
-#define DEBUG_STATE 7
-#define BLUETOOTH_RESET_STATE 8
-#define DATA_START_COLLECTION_STATE 9
-#define DATA_END_COLLECTION_STATE 10
-
-#include <string.h>
-#include <stdlib.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sfr_defs.h>
-#include <avr/power.h>
+#include "main.h"
+#include "ports.h"
+#include "adc.h"
+#include "utils.h"
 
 int main( void );
-
-void clock_scale_change( void );
 
 /* USART Bluetooth initialization */
 void USART_bluetooth_init( void );
@@ -94,68 +35,12 @@ void USART_debug_send_message( char * );
 /* USART debug receive */
 void USART_debug_recv( unsigned char );
 
-/* External ADC part */
-
-/* The interrupt initiative part */
-void ADC_init( void );
-/* Make start of the conversion */
-void ADC_start( void );
-/* Read the information from the ADC */
-void ADC_read( void );
-/* Stop reading the information from ADC */
-void ADC_stop( void );
-
-/* DELAY */
-void delay_ms( uint8_t );
 /* Debug matters */
 void debug_init( void );
 void debug_click( void );
 void debug_interrupt( void );
 void debug_data( uint8_t );
 
-void a_set_input( uint8_t );
-void a_set_output( uint8_t );
-void a_output_low( uint8_t );
-void a_output_high( uint8_t );
-
-void b_set_input( uint8_t );
-void b_set_output( uint8_t );
-void b_output_low( uint8_t );
-void b_output_high( uint8_t );
-
-void c_set_input( uint8_t );
-void c_set_output( uint8_t );
-void c_output_low( uint8_t );
-void c_output_high( uint8_t );
-
-void d_set_input( uint8_t );
-void d_set_output( uint8_t );
-void d_output_low( uint8_t );
-void d_output_high( uint8_t );
-
-void a_set_input( uint8_t pin ) { set_input( DDRA, pin ); }
-void a_set_output( uint8_t pin ) { set_output( DDRA, pin ); }
-void a_output_low( uint8_t pin ) { output_low( PORTA, pin ); }
-void a_output_high( uint8_t pin ) { output_high( PORTA, pin ); }
-
-void b_set_input( uint8_t pin ) { set_input( DDRB, pin ); }
-void b_set_output( uint8_t pin ) { set_output( DDRB, pin ); }
-void b_output_low( uint8_t pin ) { output_low( PORTB, pin ); }
-void b_output_high( uint8_t pin ) { output_high( PORTB, pin ); }
-
-void c_set_input( uint8_t pin ) { set_input( DDRC, pin ); }
-void c_set_output( uint8_t pin ) { set_output( DDRC, pin ); }
-void c_output_low( uint8_t pin ) { output_low( PORTC, pin ); }
-void c_output_high( uint8_t pin ) { output_high( PORTC, pin ); }
-
-void d_set_input( uint8_t pin ) { set_input( DDRD, pin ); }
-void d_set_output( uint8_t pin ) { set_output( DDRD, pin ); }
-void d_output_low( uint8_t pin ) { output_low( PORTD, pin ); }
-void d_output_high( uint8_t pin ) { output_high( PORTD, pin ); }
-
-char *append(const char *, char);
-char *append_long(const char*, const char*);
-uint8_t msgcmp(char*, char*, uint8_t);
 void change_state( uint8_t );
 
 /*
@@ -196,90 +81,6 @@ int main() {
   * The whale of misery
   */
   return 1;
-}
-
-/* ADC intialization with interrupt */
-void ADC_init() {
-
-  /* Interrupt on failing edge */
-  MCUCR = (1 << ISC01 ) | (0 << ISC00);
-
-  /* Turn on interrupts */
-  GICR |= (1 << INT0 );
-  /* Set PD as output */
-  c_set_output( PD );
-
-  /* SET RD as output */
-  c_set_output( RD );
-
-  /* Set CR as output */
-  c_set_output( CS );
-
-  /* Set CONVST as output */
-  c_set_output( CONVST );
-
-  /* Set PORTA as input */
-  DDRA = 0x00;
-
-}
-
-/* Make the ADC readout */ 
-void ADC_read() {
-
-  // uint8_t adc_value;
-
-  /* Chip select as low */
-  c_output_low( CS );
-  /* Read data as low */
-  c_output_low( RD );
-  
-  /* Read the PORTA */
-  // adc_value = PINA;
-
-  /* Make Read Data high */
-  c_output_high( RD );
-  /* Make Chip select high */
-  c_output_high( CS );
-
-  /* Stop ADC */
-  ADC_stop();
-
-  // delay_ms(100);
-
-  // /* Start conversion again */
-  // ADC_start();
-  // debug_data(adc_value);
-  
-}
-
-/* Make the ADC readout start */
-void ADC_start() {
-
-  /* MODE 2 Operation */
-  c_output_low( CONVST );
-
-  /* Pre-start configuration */
-  /* Wake up ADC - high */
-  c_output_high( PD );
-  /* Chip select - high */
-  c_output_high( CS );
-  /* Read data - high */
-  c_output_high( RD );
-  /* Start of conversation - low */
-  c_output_low( CONVST );
-
-  /* Start of conversation - high */
-  c_output_high( CONVST );
-  delay_ms(10); /* t_power-up */
-  /* Start of conversation - low */
-  c_output_low( CONVST );
-
-}
-
-void ADC_stop() {
-
-  output_low( PORTC, CS );
-
 }
 
 /**
@@ -339,13 +140,13 @@ void USART_bluetooth_send(unsigned char send_byte) {
 **/
 void USART_bluetooth_recv(unsigned char recv_byte) {
   /* Echo to debug */
-  USART_debug_send( recv_byte );
+  // USART_debug_send( recv_byte );
   // USART_debug_send_message(buffer_bluetooth);
   // 
 
   /* Check if the <cr,>lf bytes are received */
   if (recv_byte == 0x0a) {
-    // USART_debug_send_message(buffer_bluetooth);
+    USART_debug_send_message(buffer_bluetooth);
     /* Bluetooth returns this after version check */
     if (msgcmp(buffer_bluetooth, "OK", 2) == 1) {
       /* Bluetooth said it is ok, moving to the next state */
@@ -356,10 +157,9 @@ void USART_bluetooth_recv(unsigned char recv_byte) {
         change_state(WAIT_FOR_CONNECTION);
       }
       if (state == BLUETOOTH_CHECK_STATE) {
-        USART_bluetooth_send_message("0");
         /* Changing state to wait for bluetooth connection */
         // USART_debug_send_message("OKR");
-        change_state(WAIT_FOR_CONNECTION);
+        change_state(BLUETOOTH_CONFIGURE_STATE);
       }
       if (state == BLUETOOTH_RESET_STATE) {
         change_state(BLUETOOTH_CHECK_STATE);
@@ -674,6 +474,10 @@ ISR( BLUETOOTH_RTS_INTERRUPT_VECTOR ) {
 * - Change the interrupts accordingly
 **/
 void change_state(uint8_t _state) {
+  /**
+   * Apply to the global variable
+   */
+  state = _state;
   /*
   Check if the system passed state 1,
   then the all communications was established
@@ -737,7 +541,7 @@ void change_state(uint8_t _state) {
     case WAIT_FOR_CONNECTION:
       USART_debug_send_message("W1");
       /* Switch to command mode */
-      USART_bluetooth_at_escape();
+      // USART_bluetooth_at_escape();
       /* Waiting for the bluetooth connection from the host */
       break;
     case WAIT_FOR_COMMAND:
@@ -848,58 +652,4 @@ void debug_data( uint8_t data ) {
   b_output_high( DEBUG_DATA_PIN );
   delay_ms(100);
   b_output_low( DEBUG_DATA_PIN );
-}
-
-/**
-* Append the character to the `string`
-**/
-char *append(const char *o, char s) {
-  /* Get the length */
-  int len = strlen(o);
-  /* Create new buffer +2 spaces */
-  char buf[len+2];
-  /* Copy the original read-only `string` */
-  strcpy(buf, o);
-  /* Append the character */
-  buf[len] = s;
-  /* Add the end to the character */
-  buf[len+1] = 0;
-  /* Return the constructed character */
-  return strdup(buf);
-
-}
-
-/**
-* Long
-***/
-char *append_long(const char *o, const char *s) {
-  uint8_t o_len = strlen(o);
-  uint8_t s_len = strlen(s);
-  uint8_t i_cpy = 0;
-  char buf[o_len+s_len+2];
-  for (i_cpy = 0; i_cpy < o_len; i_cpy++) {
-    buf[i_cpy] = o[i_cpy];
-  }
-  for (i_cpy = 0; i_cpy < s_len; i_cpy++) {
-    buf[i_cpy+o_len] = s[i_cpy];
-  }
-  buf[s_len + o_len + 1] = 0;
-  // return strdup(s);
-  return strdup(buf);
-}
-
-/**
-* Message compare
-**/
-uint8_t msgcmp(char *s1, char *s2, uint8_t n) {
-  if (strlen(s1) >= n && strlen(s2) >= n) {
-    uint8_t i = 0;
-    for (i = 0; i < n; i++) {
-      if (s1[i] != s2[i]) {
-        return 0;
-      }
-    }
-    return 1;
-  }
-  return 0;
 }
