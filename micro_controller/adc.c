@@ -28,9 +28,9 @@ void ADC_init() {
 }
 
 /* Make the ADC readout */ 
-void ADC_read() {
+uint8_t ADC_read() {
 
-  // uint8_t adc_value;
+  uint8_t adc_value;
 
   /* Chip select as low */
   c_output_low( CS );
@@ -38,7 +38,7 @@ void ADC_read() {
   c_output_low( RD );
   
   /* Read the PORTA */
-  // adc_value = PINA;
+  adc_value = PINA;
 
   /* Make Read Data high */
   c_output_high( RD );
@@ -53,6 +53,7 @@ void ADC_read() {
   // /* Start conversion again */
   // ADC_start();
   // debug_data(adc_value);
+  return adc_value;
   
 }
 

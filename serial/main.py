@@ -31,8 +31,8 @@ try:
         while ser.inWaiting() > 0:
             out = ser.read()
             # print out
-            # print 'bytes: ', bytes(out)
-            # print 'hex: ', out.encode('hex')
+            print 'bytes: ', bytes(out)
+            print 'hex:   ', out.encode('hex')
             if out.encode('hex') != '00':
                 if out.encode('hex') == '0d':
                     cr_happend = True

@@ -11,6 +11,7 @@ void USART_bluetooth_init( void );
 void USART_bluetooth_send( unsigned char );
 void USART_bluetooth_send_message( char* );
 void USART_bluetooth_send_data( uint8_t );
+void USART_bluetooth_send_sample( uint8_t, uint8_t );
 /* USART Bluetooth receive */
 void USART_bluetooth_recv( unsigned char );
 /* USART bluetooth check */
@@ -52,6 +53,20 @@ char buffer_bluetooth[buffer_length];
 uint8_t buffer_i;
 /* Received data char */
 unsigned char recv_byte;
+
+/**
+ * ADC_FINISHED_READ
+ *
+ * Using it for the indication of finished conversion
+ */
+uint8_t adc_finished_read;
+
+/**
+ * ADC_VALUE
+ *
+ * Global storage of returned ADC value (8bit)
+ */
+uint8_t adc_value;
 
 /*
 ERROR CODES
@@ -140,13 +155,38 @@ void USART_bluetooth_send(unsigned char send_byte) {
 **/
 void USART_bluetooth_recv(unsigned char recv_byte) {
   /* Echo to debug */
-  // USART_debug_send( recv_byte );
-  // USART_debug_send_message(buffer_bluetooth);
-  // 
+  USART_debug_send( recv_byte );
+  
+  if (state == WAIT_FOR_COMMAND) {
+    /*
+     * The Device send hello message 
+     */
+    if (recv_byte == 'H') {
+      USART_debug_send_message("H");
+      /*
+       * Reply with hello 
+       */
+      USART_bluetooth_send_data(0x48); // [H]ello
+    }
+    /*
+     * The Device send make a sample message
+     */
+    if (recv_byte == 'S') {
+      /*
+       * Send back the sample
+       * First parameter is the channel number
+       * Second paramters is the value 
+       */
+      
+      /**
+       * Start the conversion
+       */
+      ADC_start();
+    }
+  }
 
   /* Check if the <cr,>lf bytes are received */
   if (recv_byte == 0x0a) {
-    USART_debug_send_message(buffer_bluetooth);
     /* Bluetooth returns this after version check */
     if (msgcmp(buffer_bluetooth, "OK", 2) == 1) {
       /* Bluetooth said it is ok, moving to the next state */
@@ -366,6 +406,25 @@ void USART_bluetooth_send_data( uint8_t data ) {
   /* Dont end message with anything */
 }
 
+void USART_bluetooth_send_sample(uint8_t channel, uint8_t data) {
+  char message[3];
+  /**
+   * Channel numbers are from 0 to 15
+   */
+  message[0] = channel;
+  message[1] = data;
+  
+  /**
+   * End of string
+   */
+  message[2] = '\0';
+
+  /**
+   * Send the data
+   */
+  USART_bluetooth_send_message(message);
+}
+
 
 /**
 * Communication with debug USART initialization
@@ -457,7 +516,11 @@ ISR ( USART1_RXC_vect ) {
 * Interrupts on ADC finish 
 **/
 ISR ( ADC_INTERRUPT_INT_VECTOR ) {
-  ADC_read();
+  adc_value = ADC_read();
+  /**
+   * Pass the argument 
+   */
+  USART_bluetooth_send_sample(0x01, adc_value);
 }
 
 /**
@@ -488,6 +551,7 @@ void change_state(uint8_t _state) {
   }
   switch( _state ) {
     case INITIALIZATION_STATE:
+      USART_debug_send_message("I");
       /* Initial system state -- setting up all the things */
       delay_ms(100);
       /* Set clock prescale */
@@ -507,7 +571,7 @@ void change_state(uint8_t _state) {
        */
       delay_ms(100);
       /* Set up the system for the bluetooth check */
-      change_state(BLUETOOTH_CHECK_STATE);
+      change_state(DEBUG_STATE);
       break;
     case BLUETOOTH_CHECK_STATE:
       USART_debug_send_message("C");
@@ -550,7 +614,6 @@ void change_state(uint8_t _state) {
       /* Waiting for command from the bluetooth host */
       /* Send a test data package */
       USART_debug_send_message("W2");
-      USART_bluetooth_send_data(0x48); // [H]ello
       break;
     case DEBUG_STATE:
       /**
@@ -560,7 +623,7 @@ void change_state(uint8_t _state) {
       /**
        * Wait for it
        */
-      USART_bluetooth_send_message("AT");
+      USART_bluetooth_send_message("+++");
       break;
     case BLUETOOTH_RESET_STATE:
       bluetooth_hardware_reset();
